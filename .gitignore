@@ -9,4 +9,11 @@ wheels/
 # Virtual environments
 .venv
 
+# data information that might be sensitive
 /data
+
+#serena MCP
+.serena
+
+#ide
+.vscode
