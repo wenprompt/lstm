@@ -1,19 +1,20 @@
 {
-  "evaluation_timestamp": "2025-08-30T00:36:07.834050",
+  "evaluation_timestamp": "2025-08-30T01:20:25.026665",
   "test_samples": 164,
   "metrics": {
-    "rmse": 1.1463248614676378,
-    "mae": 0.9188388586044312,
-    "mse": 1.3140606880187988,
+    "rmse": 1.2502784418884365,
+    "mae": 1.0173184871673584,
+    "mse": 1.5631961822509766,
     "directional_accuracy": 50.0,
-    "r_squared": -0.1433318853378296,
-    "mape": 236.87762451171875
+    "r_squared": -0.3600984811782837,
+    "mape": 505615.4375,
+    "smape": 134.38479614257812
   },
   "prediction_statistics": {
-    "mean_prediction": 0.4752739667892456,
-    "std_prediction": 0.07522718608379364,
-    "min_prediction": 0.29882875084877014,
-    "max_prediction": 0.5964553356170654
+    "mean_prediction": 0.7045347690582275,
+    "std_prediction": 0.09972787648439407,
+    "min_prediction": 0.5223156213760376,
+    "max_prediction": 0.8491500020027161
   },
   "actual_statistics": {
     "mean_actual": 0.05683363974094391,

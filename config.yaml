@@ -79,7 +79,7 @@ training:
   early_stopping_patience: 15
 
   # Gradient clipping norm to prevent exploding gradients
-  gradient_clip_norm: 1.0
+  gradient_clip_norm: 0.3 # 1.0 caused some unstability of losses in training
 
   # Loss function (Mean Squared Error for regression)
   loss_function: "mse"

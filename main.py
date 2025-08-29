@@ -293,9 +293,25 @@ def save_final_results(training_results: Dict[str, Any],
     logger.info(f"Training time: {training_results['total_time']/60:.1f} minutes")
     logger.info(f"Model saved at: {training_results['model_path']}")
     
-    # Final layman summary
+    # Final layman summary using the documented rating scale
     direction_success = evaluation_results['metrics']['directional_accuracy']
-    overall_quality = "EXCELLENT" if direction_success >= 60 else "GOOD" if direction_success >= 55 else "DECENT" if direction_success >= 50 else "NEEDS_WORK"
+    
+    # Get thresholds from config, falling back to documented defaults
+    thresholds = config.get("thresholds", {})
+    excellent_thresh = thresholds.get("excellent_accuracy", 60)
+    good_thresh = thresholds.get("good_accuracy", 55)
+    fair_thresh = thresholds.get("fair_accuracy", 50)
+
+    # Determine quality rating based on the correct scale
+    if direction_success >= excellent_thresh:
+        overall_quality = "EXCELLENT"
+    elif direction_success >= good_thresh:
+        overall_quality = "GOOD"
+    elif direction_success >= fair_thresh:
+        overall_quality = "FAIR"
+    else:
+        overall_quality = "POOR"
+        
     logger.info(f"🎯 FINAL RESULT: {overall_quality} iron ore price forecasting model - predicts price direction correctly {direction_success:.1f}% of the time")
     logger.info("="*60)
 

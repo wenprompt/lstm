@@ -109,26 +109,15 @@ class ModelEvaluator:
         
         logger.info("Calculating evaluation metrics...")
         
-        # Root Mean Squared Error
         rmse = np.sqrt(mean_squared_error(self.actuals, self.predictions))
-        
-        # Mean Absolute Error
         mae = mean_absolute_error(self.actuals, self.predictions)
-        
-        # Directional Accuracy (percentage of correctly predicted directions)
         directional_accuracy = self._calculate_directional_accuracy()
-        
-        # Additional regression metrics
-        # R-squared (coefficient of determination)
         ss_res = np.sum((self.actuals - self.predictions) ** 2)
         ss_tot = np.sum((self.actuals - np.mean(self.actuals)) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
-        
-        # Mean Squared Error (for completeness)
         mse = mean_squared_error(self.actuals, self.predictions)
-        
-        # Mean Absolute Percentage Error (MAPE)
         mape = self._calculate_mape()
+        smape = self._calculate_smape()
         
         self.evaluation_metrics = {
             'rmse': float(rmse),
@@ -136,7 +125,8 @@ class ModelEvaluator:
             'mse': float(mse),
             'directional_accuracy': float(directional_accuracy),
             'r_squared': float(r_squared),
-            'mape': float(mape)
+            'mape': float(mape),
+            'smape': float(smape)
         }
         
         logger.info("Evaluation metrics calculated:")
@@ -144,12 +134,12 @@ class ModelEvaluator:
         logger.info(f"  MAE: {mae:.6f}")
         logger.info(f"  Directional Accuracy: {directional_accuracy:.2f}%")
         logger.info(f"  R²: {r_squared:.4f}")
-        logger.info(f"  MAPE: {mape:.2f}%")
+        logger.info(f"  MAPE (robust): {mape:.2f}%")
+        logger.info(f"  SMAPE: {smape:.2f}%")
         
-        # Layman performance summary with configurable thresholds
         thresholds = self.config.get("thresholds", {})
         excellent_thresh = thresholds.get("excellent_accuracy", 60)
-        good_thresh = thresholds.get("good_accuracy", 55) 
+        good_thresh = thresholds.get("good_accuracy", 55)
         fair_thresh = thresholds.get("fair_accuracy", 50)
         strong_corr = thresholds.get("strong_correlation", 0.5)
         mod_corr = thresholds.get("moderate_correlation", 0.2)
@@ -165,54 +155,51 @@ class ModelEvaluator:
         """
         Calculate directional accuracy for forecasting evaluation.
         
-        Measures the percentage of predictions that correctly predict
-        the direction of price movement (up/down) compared to actual.
-        
         Returns:
             Directional accuracy as percentage (0-100)
         """
         if len(self.predictions) <= 1:
             return 0.0
         
-        # Calculate direction changes for predictions and actuals
-        # Positive = up, Negative = down, Zero = no change
         pred_directions = np.sign(self.predictions)
         actual_directions = np.sign(self.actuals)
         
-        # Count correct directional predictions
         correct_directions = np.sum(pred_directions == actual_directions)
         total_predictions = len(self.predictions)
         
         directional_accuracy = (correct_directions / total_predictions) * 100
-        
         logger.debug(f"Directional accuracy: {correct_directions}/{total_predictions} correct")
-        
         return directional_accuracy
-    
-    def _calculate_mape(self) -> float:
+
+    def _calculate_mape(self, eps: float = 1e-6) -> float:
         """
-        Calculate Mean Absolute Percentage Error.
-        
+        Calculate robust Mean Absolute Percentage Error.
+
+        Args:
+            eps: Epsilon value to clamp the denominator and avoid division by zero.
+
         Returns:
-            MAPE as percentage
+            MAPE as a percentage.
         """
-        # Avoid division by zero for actual values close to zero
-        non_zero_mask = np.abs(self.actuals) > 1e-6
-        
-        if not np.any(non_zero_mask):
-            logger.warning("All actual values are near zero, MAPE calculation unreliable")
-            return float('inf')
-        
-        filtered_actuals = self.actuals[non_zero_mask]
-        filtered_predictions = self.predictions[non_zero_mask]
-        
-        mape = np.mean(np.abs((filtered_actuals - filtered_predictions) / filtered_actuals)) * 100
-        
-        return mape
+        denom = np.maximum(np.abs(self.actuals), eps)
+        return float(np.mean(np.abs((self.actuals - self.predictions) / denom)) * 100)
+
+    def _calculate_smape(self, eps: float = 1e-6) -> float:
+        """
+        Calculate Symmetric Mean Absolute Percentage Error.
+
+        Args:
+            eps: Epsilon value to avoid division by zero.
+
+        Returns:
+            SMAPE as a percentage.
+        """
+        denom = np.maximum((np.abs(self.actuals) + np.abs(self.predictions)) / 2.0, eps)
+        return float(np.mean(np.abs(self.predictions - self.actuals) / denom) * 100)
     
     def create_visualizations(self, save_dir: Path = Path("results/plots")) -> Dict[str, str]:
         """
-        Create comprehensive visualizations of model performance.
+        Create comprehensive, well-labeled visualizations of model performance.
         
         Args:
             save_dir: Directory to save plot files
@@ -220,166 +207,158 @@ class ModelEvaluator:
         Returns:
             Dictionary mapping plot names to file paths
         """
-        logger.info("Creating evaluation visualizations...")
+        logger.info("Creating evaluation visualizations with enhanced labeling...")
         
-        # Create save directory
         save_dir.mkdir(parents=True, exist_ok=True)
-        
         saved_plots = {}
         
-        # Set up plotting style
-        plt.style.use('seaborn-v0_8')
-        sns.set_palette("husl")
+        plt.style.use('seaborn-v0_8-whitegrid')
+        palette: List[Any] = sns.color_palette("husl", 8)
         
-        # 1. Actual vs Predicted scatter plot
-        saved_plots['scatter'] = self._create_scatter_plot(save_dir)
-        
-        # 2. Time series plot of predictions vs actuals
-        saved_plots['timeseries'] = self._create_timeseries_plot(save_dir)
-        
-        # 3. Residuals analysis
-        saved_plots['residuals'] = self._create_residuals_plot(save_dir)
-        
-        # 4. Distribution comparison
-        saved_plots['distributions'] = self._create_distribution_plot(save_dir)
+        saved_plots['scatter'] = self._create_scatter_plot(save_dir, palette)
+        saved_plots['timeseries'] = self._create_timeseries_plot(save_dir, palette)
+        saved_plots['residuals'] = self._create_residuals_plot(save_dir, palette)
+        saved_plots['distributions'] = self._create_distribution_plot(save_dir, palette)
         
         logger.info(f"Created {len(saved_plots)} visualization plots")
-        
         return saved_plots
     
-    def _create_scatter_plot(self, save_dir: Path) -> str:
-        """Create actual vs predicted scatter plot."""
+    def _create_scatter_plot(self, save_dir: Path, palette: List[Any]) -> str:
+        """Create an enhanced actual vs. predicted scatter plot."""
         fig, ax = plt.subplots(figsize=(10, 8))
         
-        # Scatter plot
-        ax.scatter(self.actuals, self.predictions, alpha=0.6, s=20)
+        ax.scatter(self.actuals, self.predictions, alpha=0.7, s=30, c=[palette[0]])
         
-        # Perfect prediction line (y=x)
         min_val = min(self.actuals.min(), self.predictions.min())
         max_val = max(self.actuals.max(), self.predictions.max())
-        ax.plot([min_val, max_val], [min_val, max_val], 'r--', lw=2, label='Perfect Prediction')
+        ax.plot([min_val, max_val], [min_val, max_val], color=palette[1], linestyle='--', lw=2, label='Perfect Prediction')
         
-        # Labels and title
-        ax.set_xlabel('Actual Log Returns (%)', fontsize=12)
-        ax.set_ylabel('Predicted Log Returns (%)', fontsize=12)
-        ax.set_title('LSTM Model: Actual vs Predicted Log Returns', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Actual Log Returns (%)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Predicted Log Returns (%)', fontsize=12, fontweight='bold')
+        ax.set_title('Prediction Accuracy: Actual vs. Predicted Returns', fontsize=16, fontweight='bold', pad=20)
+        fig.suptitle("Points closer to the red dashed line indicate higher prediction accuracy.", fontsize=10, y=0.92)
+        
         ax.legend()
-        ax.grid(True, alpha=0.3)
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
         
-        # Add metrics text
-        metrics_text = f"RMSE: {self.evaluation_metrics['rmse']:.4f}\n"
-        metrics_text += f"MAE: {self.evaluation_metrics['mae']:.4f}\n"
-        metrics_text += f"R²: {self.evaluation_metrics['r_squared']:.4f}"
-        ax.text(0.05, 0.95, metrics_text, transform=ax.transAxes, 
+        metrics_text = (f"RMSE: {self.evaluation_metrics['rmse']:.4f}\n"
+                        f"MAE: {self.evaluation_metrics['mae']:.4f}\n"
+                        f"R²: {self.evaluation_metrics['r_squared']:.4f}")
+        ax.text(0.05, 0.95, metrics_text, transform=ax.transAxes, fontsize=10,
                 verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
         
-        plt.tight_layout()
-        
-        # Save plot
+        plt.tight_layout(rect=(0, 0, 1, 0.96))
         plot_path = save_dir / "actual_vs_predicted_scatter.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
-        
         return str(plot_path)
-    
-    def _create_timeseries_plot(self, save_dir: Path) -> str:
-        """Create time series plot of predictions vs actuals."""
+
+    def _create_timeseries_plot(self, save_dir: Path, palette: List[Any]) -> str:
+        """Create an enhanced time series plot with error visualization."""
         fig, ax = plt.subplots(figsize=(15, 8))
         
-        # Time series indices (since we don't have actual dates in test loader)
         time_indices = range(len(self.actuals))
         
-        # Plot actual and predicted values
-        ax.plot(time_indices, self.actuals, label='Actual', linewidth=1.5, alpha=0.8)
-        ax.plot(time_indices, self.predictions, label='Predicted', linewidth=1.5, alpha=0.8)
+        ax.plot(time_indices, self.actuals, color=palette[0], label='Actual Returns', linewidth=2, alpha=0.8)
+        ax.plot(time_indices, self.predictions, color=palette[1], label='Predicted Returns', linewidth=2, linestyle='--')
         
-        # Labels and title
-        ax.set_xlabel('Test Sample Index', fontsize=12)
-        ax.set_ylabel('Log Returns (%)', fontsize=12)
-        ax.set_title('LSTM Model: Time Series Comparison (Test Set)', fontsize=14, fontweight='bold')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+        ax.fill_between(time_indices, self.actuals, self.predictions, color=palette[2], alpha=0.2, label='Prediction Error')
         
-        plt.tight_layout()
+        ax.set_xlabel('Test Sample Index', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Log Returns (%)', fontsize=12, fontweight='bold')
+        ax.set_title('Prediction Over Time: Actual vs. Predicted Returns', fontsize=16, fontweight='bold', pad=20)
+        fig.suptitle("Compares model predictions against actuals over the test set. Shaded area shows error magnitude.", fontsize=10, y=0.92)
         
-        # Save plot
+        ax.legend(loc='upper left')
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        ax.axhline(0, color='black', linewidth=0.5, linestyle='-')
+        
+        plt.tight_layout(rect=(0, 0, 1, 0.96))
         plot_path = save_dir / "timeseries_comparison.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
-        
         return str(plot_path)
-    
-    def _create_residuals_plot(self, save_dir: Path) -> str:
-        """Create residuals analysis plots."""
+
+    def _create_residuals_plot(self, save_dir: Path, palette: List[Any]) -> str:
+        """Create an enhanced 4-in-1 residuals analysis plot for model diagnostics."""
         residuals = self.actuals - self.predictions
-        
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
-        
+        fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+        fig.suptitle('Model Diagnostics: Residuals Analysis', fontsize=18, fontweight='bold')
+
         # 1. Residuals vs Predicted
-        ax1.scatter(self.predictions, residuals, alpha=0.6, s=20)
-        ax1.axhline(y=0, color='r', linestyle='--')
+        ax1 = axes[0, 0]
+        sns.scatterplot(x=self.predictions, y=residuals, ax=ax1, color=palette[0], alpha=0.7)
+        ax1.axhline(y=0, color=palette[1], linestyle='--')
+        ax1.set_title('1. Residuals vs. Predicted Values', fontsize=12, fontweight='bold')
         ax1.set_xlabel('Predicted Values')
-        ax1.set_ylabel('Residuals')
-        ax1.set_title('Residuals vs Predicted')
-        ax1.grid(True, alpha=0.3)
-        
-        # 2. Residuals histogram
-        ax2.hist(residuals, bins=30, alpha=0.7, edgecolor='black')
-        ax2.set_xlabel('Residuals')
+        ax1.set_ylabel('Residuals (Actual - Predicted)')
+        ax1.text(0.95, 0.01, 'Ideal: Random scatter around y=0', ha='right', va='bottom', transform=ax1.transAxes, fontsize=9, style='italic')
+
+        # 2. Residuals Distribution
+        ax2 = axes[0, 1]
+        sns.histplot(residuals, kde=True, ax=ax2, color=palette[2], bins=30)
+        ax2.axvline(residuals.mean(), color=palette[1], linestyle='--', label=f'Mean: {residuals.mean():.3f}')
+        ax2.set_title('2. Distribution of Residuals', fontsize=12, fontweight='bold')
+        ax2.set_xlabel('Residual Value')
         ax2.set_ylabel('Frequency')
-        ax2.set_title('Residuals Distribution')
-        ax2.grid(True, alpha=0.3)
-        
-        # 3. Q-Q plot (normal distribution check)
+        ax2.legend()
+        ax2.text(0.95, 0.01, 'Ideal: Normal distribution centered at 0', ha='right', va='bottom', transform=ax2.transAxes, fontsize=9, style='italic')
+
+        # 3. Q-Q plot
+        ax3 = axes[1, 0]
         from scipy import stats  # type: ignore
         stats.probplot(residuals, dist="norm", plot=ax3)
-        ax3.set_title('Q-Q Plot (Normal Distribution Check)')
-        ax3.grid(True, alpha=0.3)
-        
+        ax3.get_lines()[0].set_markerfacecolor(palette[0])
+        ax3.get_lines()[0].set_markeredgecolor(palette[0])
+        ax3.get_lines()[1].set_color(palette[1])
+        ax3.set_title('3. Normality Check: Q-Q Plot of Residuals', fontsize=12, fontweight='bold')
+        ax3.text(0.95, 0.01, 'Ideal: Points fall along the red line', ha='right', va='bottom', transform=ax3.transAxes, fontsize=9, style='italic')
+
         # 4. Residuals over time
-        ax4.plot(residuals, linewidth=1)
-        ax4.axhline(y=0, color='r', linestyle='--')
+        ax4 = axes[1, 1]
+        ax4.plot(residuals, color=palette[3], lw=1.5)
+        ax4.axhline(y=0, color=palette[1], linestyle='--')
+        ax4.set_title('4. Residuals vs. Observation Order', fontsize=12, fontweight='bold')
         ax4.set_xlabel('Test Sample Index')
         ax4.set_ylabel('Residuals')
-        ax4.set_title('Residuals Over Time')
-        ax4.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        
-        # Save plot
+        ax4.text(0.95, 0.01, 'Ideal: No clear patterns or trends', ha='right', va='bottom', transform=ax4.transAxes, fontsize=9, style='italic')
+
+        plt.tight_layout(rect=(0, 0.03, 1, 0.95))
         plot_path = save_dir / "residuals_analysis.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
-        
         return str(plot_path)
-    
-    def _create_distribution_plot(self, save_dir: Path) -> str:
-        """Create distribution comparison plot."""
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-        
-        # 1. Histogram comparison
-        ax1.hist(self.actuals, bins=30, alpha=0.7, label='Actual', edgecolor='black')
-        ax1.hist(self.predictions, bins=30, alpha=0.7, label='Predicted', edgecolor='black')
+
+    def _create_distribution_plot(self, save_dir: Path, palette: List[Any]) -> str:
+        """Create an enhanced distribution comparison plot using KDE and Box plots."""
+        fig, axes = plt.subplots(1, 2, figsize=(15, 7))
+        fig.suptitle('Statistical Comparison: Actual vs. Predicted Distributions', fontsize=16, fontweight='bold')
+
+        # 1. Density Plot (KDE)
+        ax1 = axes[0]
+        sns.kdeplot(self.actuals, ax=ax1, color=palette[0], label='Actual', fill=True)
+        sns.kdeplot(self.predictions, ax=ax1, color=palette[1], label='Predicted', fill=True)
+        ax1.axvline(self.actuals.mean(), color=palette[0], linestyle='--', lw=1.5, label=f'Actual Mean: {self.actuals.mean():.3f}')
+        ax1.axvline(self.predictions.mean(), color=palette[1], linestyle='--', lw=1.5, label=f'Predicted Mean: {self.predictions.mean():.3f}')
+        ax1.set_title('Density Plot of Actual vs. Predicted Values', fontsize=12, fontweight='bold')
         ax1.set_xlabel('Log Returns (%)')
-        ax1.set_ylabel('Frequency')
-        ax1.set_title('Distribution Comparison')
+        ax1.set_ylabel('Density')
         ax1.legend()
-        ax1.grid(True, alpha=0.3)
-        
-        # 2. Box plot comparison
+        ax1.text(0.95, 0.01, 'Ideal: Distributions are very similar', ha='right', va='bottom', transform=ax1.transAxes, fontsize=9, style='italic')
+
+        # 2. Box Plot
+        ax2 = axes[1]
         box_data = [self.actuals, self.predictions]
-        ax2.boxplot(box_data, labels=['Actual', 'Predicted'])
+        sns.boxplot(data=box_data, ax=ax2, palette=[palette[0], palette[1]])
+        ax2.set_xticklabels(['Actual', 'Predicted'])
+        ax2.set_title('Box Plot of Actual vs. Predicted Values', fontsize=12, fontweight='bold')
         ax2.set_ylabel('Log Returns (%)')
-        ax2.set_title('Box Plot Comparison')
-        ax2.grid(True, alpha=0.3)
-        
-        plt.tight_layout()
-        
-        # Save plot
+        ax2.text(0.95, 0.01, 'Ideal: Boxes have similar median, size, and whisker length', ha='right', va='bottom', transform=ax2.transAxes, fontsize=9, style='italic')
+
+        plt.tight_layout(rect=(0, 0.03, 1, 0.95))
         plot_path = save_dir / "distribution_comparison.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
-        
         return str(plot_path)
     
     def save_results(
@@ -456,7 +435,8 @@ PERFORMANCE METRICS:
 ├─ Mean Squared Error (MSE): {self.evaluation_metrics['mse']:.6f}
 ├─ Directional Accuracy: {self.evaluation_metrics['directional_accuracy']:.2f}%
 ├─ R-squared (R²): {self.evaluation_metrics['r_squared']:.4f}
-└─ Mean Absolute Percentage Error (MAPE): {self.evaluation_metrics['mape']:.2f}%
+├─ MAPE (robust): {self.evaluation_metrics['mape']:.2f}%
+└─ SMAPE: {self.evaluation_metrics['smape']:.2f}%
 
 PREDICTION STATISTICS:
 ├─ Mean: {np.mean(self.predictions):.4f}

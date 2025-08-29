@@ -31,7 +31,7 @@
       "learning_rate": 0.001,
       "epochs": 100,
       "early_stopping_patience": 15,
-      "gradient_clip_norm": 1.0,
+      "gradient_clip_norm": 0.5,
       "loss_function": "mse",
       "optimizer": "adam"
     },
@@ -74,21 +74,22 @@
     }
   },
   "training": {
-    "final_epoch": 19,
-    "total_time_minutes": 0.048712658882141116,
-    "best_val_loss": 1.5686910152435303,
-    "final_train_loss": 4.911318336214338,
-    "final_val_loss": 2.1628042459487915,
+    "final_epoch": 24,
+    "total_time_minutes": 0.03817868630091349,
+    "best_val_loss": 1.4638336300849915,
+    "final_train_loss": 4.356071267809186,
+    "final_val_loss": 1.9014215469360352,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.1463248614676378,
-      "mae": 0.9188388586044312,
-      "mse": 1.3140606880187988,
+      "rmse": 1.2502784418884365,
+      "mae": 1.0173184871673584,
+      "mse": 1.5631961822509766,
       "directional_accuracy": 50.0,
-      "r_squared": -0.1433318853378296,
-      "mape": 236.87762451171875
+      "r_squared": -0.3600984811782837,
+      "mape": 505615.4375,
+      "smape": 134.38479614257812
     },
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",
