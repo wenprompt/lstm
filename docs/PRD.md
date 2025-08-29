@@ -85,7 +85,7 @@ The 12 features are sourced from 6 separate data files requiring different proce
   - Handle missing values and ensure proper date alignment
 - **Data Validation**: Check for missing dates, data quality issues, and consistent time series coverage
 - **Date Filtering**: Filter all datasets to **March 30, 2022 onwards** due to indian pellet premium data availability
-- **Output**: Clean, standardized DataFrames ready for feature engineering (covering ~3+ years of data)
+- **Output**: Clean, standardized DataFrames ready for feature engineering (covering ~3.4 years of data)
 
 ### FR2: M+1 Continuous Futures Series Construction (`features.py`)
 
@@ -106,27 +106,39 @@ The 12 features are sourced from 6 separate data files requiring different proce
 The continuous M+1 series construction uses a backward cumulative process that works as a chain reaction moving into the past:
 
 **Step 1: Identify M+1 contract for each calendar month**
+
 - For any date in month M, use the futures contract expiring in month M+1
 - January 2024 → Use February 2024 contract (M+1)
 - February 2024 → Use March 2024 contract (M+1)
 - March 2024 → Use April 2024 contract (M+1)
 
 **Step 2: Work backward from most recent contract**
+
 - **Anchor (Present Day)**: The most recent contract's prices are the "true" prices (never adjusted)
-- Example: Today we are in December 2025 contract (anchor - never adjusted)
+- Example: September 2025 contract is the most recent available (anchor - never adjusted)
 
-**First Step Back (Nov -> Dec rollover)**:
-- Find last trading day of November 2025
-- Calculate ratio: Ratio_1 = Dec_2025_Price / Nov_2025_Price (on rollover day)
-- Adjust entire November 2025 contract history: Nov_adjusted = Nov_original × Ratio_1
+**First Step Back (August 2025 adjustment)**:
 
-**Second Step Back (Oct -> Nov rollover)**:
-- Find last trading day of October 2025
-- Calculate ratio using ADJUSTED Nov price: Ratio_2 = Nov_adjusted_Price / Oct_2025_Price
-- Adjust entire October 2025 contract history: Oct_adjusted = Oct_original × Ratio_2
+- Find last trading day of July 2025 (rollover day)
+- Get prices on that day: Sep_2025_Price and Aug_2025_Price
+- Calculate ratio: Ratio_1 = Sep_2025_Price / Aug_2025_Price (reference/older)
+- Adjust entire August 2025 contract history: Aug_adjusted = Aug_original × Ratio_1
+- **Result**: Aug_adjusted price on rollover day now equals Sep_2025 price (perfect continuity)
+
+**Second Step Back (July 2025 adjustment)**:
+
+- Find last trading day of June 2025 (rollover day)
+- Get prices on that day: Aug_adjusted_Price and July_2025_Price
+- Calculate ratio using ADJUSTED Aug price: Ratio_2 = Aug_adjusted_Price / July_2025_Price
+- Adjust entire July 2025 contract history: July_adjusted = July_original × Ratio_2
+- **Result**: July_adjusted price on rollover day now equals Aug_adjusted price
 
 **Continue backward through ALL historical contracts**
-- Each adjustment uses the previously adjusted contract as reference
+
+- Each adjustment uses the previously adjusted (or anchor) contract as reference
+- Older contracts are always the ones being adjusted
+- **Verified Example**: On 2020-09-30, Oct-20 (121.05) and Nov-20 (117.00) → ratio = 0.966543
+- Oct-20 contract gets multiplied by 0.966543, creating seamless price transition
 
 **Algorithm**:
 

@@ -147,10 +147,17 @@ class ContinuousFuturesBuilder:
             adjusted_next_contract = adjusted_contracts[next_period]
             current_contract = contracts[current_period].copy()
 
-            # Find rollover day (last trading day of current period)
-            year, month = current_period.year, current_period.month
+            # Find rollover day (last trading day of the month BEFORE the current contract period)
+            # This is when the market rolls over TO this contract.
+            # e.g., for the Dec-2025 contract, the rollover happens at the end of Nov-2025.
+            rollover_month = current_period.month - 1
+            rollover_year = current_period.year
+            if rollover_month == 0:
+                rollover_month = 12
+                rollover_year -= 1
+
             rollover_day = self.get_last_trading_day_of_month(
-                current_contract, year, month
+                current_contract, rollover_year, rollover_month
             )
 
             if rollover_day is None:

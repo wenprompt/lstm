@@ -1,0 +1,31 @@
+{
+  "evaluation_timestamp": "2025-08-29T17:40:11.410931",
+  "test_samples": 121,
+  "metrics": {
+    "rmse": 1.2354351754219979,
+    "mae": 1.0216652154922485,
+    "mse": 1.526300072669983,
+    "directional_accuracy": 47.93388429752066,
+    "r_squared": -0.2538958787918091,
+    "mape": 266.8970947265625
+  },
+  "prediction_statistics": {
+    "mean_prediction": 0.5526500344276428,
+    "std_prediction": 0.2881312370300293,
+    "min_prediction": 0.12347044050693512,
+    "max_prediction": 1.0909500122070312
+  },
+  "actual_statistics": {
+    "mean_actual": 0.02826354093849659,
+    "std_actual": 1.1032888889312744,
+    "min_actual": -2.7594096660614014,
+    "max_actual": 3.016491174697876
+  },
+  "plot_paths": {
+    "scatter": "results/plots/actual_vs_predicted_scatter.png",
+    "timeseries": "results/plots/timeseries_comparison.png",
+    "residuals": "results/plots/residuals_analysis.png",
+    "distributions": "results/plots/distribution_comparison.png"
+  },
+  "model_type": "bidirectional_lstm"
+}

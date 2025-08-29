@@ -102,6 +102,11 @@ class DataLoader:
         logger.info(f"Val set: {len(val_df)} samples ({val_df.index.min()} to {val_df.index.max()})")
         logger.info(f"Test set: {len(test_df)} samples ({test_df.index.min()} to {test_df.index.max()})")
         
+        # Data split summary
+        total_samples = len(train_df) + len(val_df) + len(test_df)
+        train_years = (train_df.index.max() - train_df.index.min()).days / 365.25
+        logger.info(f"📊 Data Split: Using {train_years:.1f} years for training, {total_samples} total daily observations")
+        
         return train_df, val_df, test_df
         
     def scale_features(self, train_df: pd.DataFrame, val_df: pd.DataFrame, 
@@ -140,6 +145,9 @@ class DataLoader:
         
         logger.info("Feature scaling completed")
         logger.info(f"Feature ranges after scaling: {train_df_scaled[feature_cols].min().min():.3f} to {train_df_scaled[feature_cols].max().max():.3f}")
+        
+        # Feature scaling summary
+        logger.info(f"🔧 Features Prepared: All {len(feature_cols)} features normalized to 0-1 range for optimal neural network training")
         
         return train_df_scaled, val_df_scaled, test_df_scaled
         

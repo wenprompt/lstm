@@ -32,11 +32,36 @@ Avoid building functionality on speculation. Implement features only when they a
 
 ### Project Architecture
 
-- TO DO
+The LSTM iron ore forecasting project is organized into the following modular structure:
+
+```
+src/
+├── data/                    # Data loading and preprocessing
+│   ├── data_loader.py      # Main data loading with chronological splits
+│   └── dataset.py          # PyTorch Dataset and DataLoader creation
+├── models/                  # Model architecture definitions
+│   └── model.py            # Bidirectional LSTM model implementation
+├── training/                # Training pipeline and optimization
+│   └── train.py            # Training loop with early stopping
+├── evaluation/              # Model evaluation and metrics
+│   └── evaluate.py         # Comprehensive evaluation with visualizations
+├── features/                # Feature engineering utilities
+├── config/                  # Configuration management
+└── utils/                   # General utilities
+
+scripts/                     # Data preprocessing scripts
+├── build_continuous_futures.py     # M+1 futures series construction
+└── build_consolidated_features.py  # 12-feature dataset consolidation
+
+main.py                      # Main orchestration script
+config.yaml                  # Centralized hyperparameter configuration
+```
 
 ## 🛠️ Development Environment
 
 ### Development Commands
+
+#### Code Quality and Testing
 
 ```bash
 # Run all tests
@@ -62,13 +87,315 @@ uv run mypy src/
 
 # Run pre-commit hooks
 uv run pre-commit run --all-files
+```
 
-# Build continuous futures series
+#### Data Processing Pipeline
+
+```bash
+# Build continuous M+1 futures series (65% DSP + 62% FEF)
 uv run python scripts/build_continuous_futures.py
 
-# Build consolidated features dataset
+# Build consolidated 12-feature dataset with Y target
 uv run python scripts/build_consolidated_features.py
+
+# Inspect raw pickle files (debugging)
+uv run python scripts/inspect_pkl_files.py
 ```
+
+#### LSTM Model Pipeline
+
+```bash
+# Run complete LSTM training and evaluation pipeline
+uv run python main.py
+
+# Individual module testing (if needed)
+uv run python -c "from src.models.model import create_model; print('Model import successful')"
+uv run python -c "from src.data.data_loader import DataLoader; print('DataLoader import successful')"
+```
+
+### What Happens When You Run `main.py`
+
+When you execute `uv run python main.py`, the complete LSTM pipeline runs automatically:
+
+#### Step-by-Step Execution Flow
+
+1. **Configuration Loading**
+
+   ```
+   Loading configuration from config.yaml
+   Model: 64 hidden units, 2 layers
+   Training: 100 max epochs, batch size 32
+   ```
+
+2. **Data Loading & Preprocessing**
+
+   ```
+   📊 Data Split: Using 1.7 years for training, 868 total daily observations
+   🔧 Features Prepared: All 12 features normalized to 0-1 range for optimal neural network training
+   ```
+
+3. **Model Creation**
+
+   ```
+   🧠 Neural Network: MODERATE model with 50K parameters, designed to learn iron ore price patterns
+   ```
+
+4. **Training Process** (Most Important Phase)
+
+   ```
+   Epoch 15/100 - Training Phase
+       Batch  20/ 19 | Loss: 1.234567 | Avg Loss: 1.345678 | Progress:  95.0%
+   Epoch 15/100 - Validation Phase
+   Epoch 15/100 Complete:
+     Train Loss: 1.234567
+     Val Loss:   1.123456 (↓+0.111111)
+     Time:       12.5s
+     LR:         0.001000
+     Best Val:   1.123456
+     📊 Summary: Model performance is IMPROVING, training speed is FAST
+   ```
+
+5. **Training Completion**
+
+   ```
+   🎯 Training Summary: stopped early (model stopped improving), took moderate time (25.3 min)
+   ```
+
+6. **Model Evaluation**
+
+   ```
+   📈 Model Quality: GOOD direction prediction (58.5%), LOW error rate, MODERATE correlation
+   ```
+
+7. **Final Results**
+   ```
+   🎯 FINAL RESULT: GOOD iron ore price forecasting model - predicts price direction correctly 58.5% of the time
+   ```
+
+#### Expected Results by Dataset
+
+Think of training an LSTM model like teaching someone to predict iron ore prices:
+
+**Training Dataset (607 samples, ~70%) - "The Learning Phase"**
+
+- **What it does**: Like showing a student 607 examples of "when X happened, price went up/down"
+- **Purpose**: The model memorizes patterns from March 2022 to ~Jan 2024
+- **What you'll see**: Training loss starts high (~3.0) and drops as model learns (~1.5)
+- **Good sign**: Loss keeps decreasing = model is learning patterns
+- **Bad sign**: Loss stays flat = model can't find patterns in your data
+
+**Validation Dataset (130 samples, ~15%) - "The Practice Test"**
+
+- **What it does**: Like giving the student practice problems they've never seen
+- **Purpose**: Check if model learned real patterns (not just memorization)
+- **What you'll see**: Validation loss should improve alongside training loss
+- **Early stopping**: If validation stops improving but training keeps going = model is memorizing instead of learning real patterns
+- **Good sign**: Validation loss improves for 10-20 epochs then plateaus
+- **Bad sign**: Validation loss goes up while training loss goes down = overfitting
+
+**Test Dataset (131 samples, ~15%) - "The Final Exam"**
+
+- **What it does**: Final unseen data to see how good the model really is
+- **Purpose**: Honest evaluation of real-world performance (~Feb 2024 to Aug 2025)
+- **What you'll see**: Final metrics that tell you if the model works in practice
+- **Expected Performance**:
+  - **50-65% Directional Accuracy**: Can the model predict if price goes up or down better than flipping a coin?
+  - **1.0-2.5% RMSE**: How far off are the predictions on average?
+  - **0.8-2.0% MAE**: Average size of prediction errors
+
+**Why Split This Way?**
+
+- **Training**: Model needs lots of examples to learn (70%)
+- **Validation**: Need enough data to reliably detect overfitting (15%)
+- **Test**: Need fresh data for honest performance assessment (15%)
+- **Chronological order**: We use oldest data for training, newest for testing (realistic scenario)
+
+#### Output Files & Results Location
+
+**Training Logs**
+
+```
+results/training.log          # Complete training history
+Console output                # Real-time progress with emojis
+```
+
+**Model Checkpoints**
+
+```
+results/models/best_model.pt   # Best performing model weights
+results/models/final_model.pt  # Final epoch model weights
+```
+
+**Evaluation Results**
+
+```
+results/evaluation_results.json     # All metrics in JSON format
+results/final_results.json          # Complete pipeline results
+```
+
+**Visualization Plots**
+
+```
+results/plots/actual_vs_predicted_scatter.png    # Overall prediction quality
+results/plots/timeseries_comparison.png          # Predictions over time
+results/plots/residuals_analysis.png             # Error distribution analysis
+results/plots/distribution_comparison.png        # Statistical comparison
+```
+
+#### Performance Interpretation Guide
+
+**Layman Summary Meanings**
+
+**Training Performance**:
+
+- **IMPROVING**: ✅ Model is getting better each epoch
+- **PLATEAU**: ⚠️ Model stopped improving but stable
+- **DECLINING**: ❌ Model is getting worse (overfitting)
+
+**Training Speed**:
+
+- **FAST**: < 10 seconds per epoch (good hardware/small model)
+- **MEDIUM**: 10-30 seconds per epoch (normal)
+- **SLOW**: > 30 seconds per epoch (large model/slow hardware)
+
+**Model Quality**:
+
+- **EXCELLENT**: ≥60% directional accuracy (very good forecasting)
+- **GOOD**: 55-59% directional accuracy (solid performance)
+- **FAIR**: 50-54% directional accuracy (slightly better than random)
+- **POOR**: <50% directional accuracy (needs improvement)
+
+**Error Assessment**:
+
+- **LOW**: RMSE < 1.0% (highly accurate predictions)
+- **MODERATE**: RMSE 1.0-2.0% (acceptable accuracy)
+- **HIGH**: RMSE > 2.0% (significant prediction errors)
+
+**Final Success Criteria**
+
+🎯 **Excellent Model** (≥60% directional accuracy):
+
+- Predicts iron ore price direction better than most traders
+- Ready for real-world forecasting applications
+- Strong commercial value
+
+🎯 **Good Model** (55-59% directional accuracy):
+
+- Solid forecasting performance above random chance
+- Useful for trend analysis and risk management
+- Good foundation for further improvement
+
+🎯 **Decent Model** (50-54% directional accuracy):
+
+- Basic pattern recognition working
+- Slightly better than random guessing
+- Needs hyperparameter tuning or more data
+
+🎯 **Needs Work** (<50% directional accuracy):
+
+- Model not learning meaningful patterns
+- Check data quality, feature engineering, or model architecture
+- May need different approach
+
+## 🧠 LSTM Implementation Guide
+
+### Architecture Overview
+
+The LSTM iron ore forecasting system follows a **modular pipeline architecture**:
+
+```
+📊 Raw Data → 🔄 Preprocessing → 🧠 Model → 📈 Evaluation → 💾 Results
+```
+
+### Data Flow & File Interactions
+
+#### Phase 1: Data Preprocessing (Run Once)
+
+1. **Continuous Futures Construction** (`scripts/build_continuous_futures.py`)
+
+   - Input: Raw futures contracts (69 months 65% DSP, 81 months 62% FEF)
+   - Process: Backward cumulative adjustment method for M+1 series
+   - Output: 2 continuous daily price series
+
+2. **Feature Consolidation** (`scripts/build_consolidated_features.py`)
+   - Input: 6 data sources with mixed frequencies
+   - Process: Date alignment, forward-fill for weekly data, Y target calculation
+   - Output: 12 features + Y target (868 samples from March 2022)
+
+#### Phase 2: LSTM Pipeline (`main.py`)
+
+1. **Data Loading** (`src/data/data_loader.py`)
+
+   - Chronological splits: 70%/15%/15% (train/val/test)
+   - MinMaxScaler on features only (Y target unscaled)
+
+2. **Dataset Creation** (`src/data/dataset.py`)
+
+   - Sliding window sequences: 20 timesteps → 1 prediction
+   - PyTorch DataLoaders with batch_size=32
+
+3. **Model Architecture** (`src/models/model.py`)
+
+   ```
+   Input (12 features) → Bidirectional LSTM (96 hidden, 2 layers)
+   → LayerNorm → Dropout(0.35) → Linear → Output (1 prediction)
+   ```
+
+4. **Training** (`src/training/train.py`)
+
+   - Adam optimizer (lr=0.001) with gradient clipping
+   - Early stopping (patience=15) monitoring validation loss
+   - Model checkpointing saves best weights
+
+5. **Evaluation** (`src/evaluation/evaluate.py`)
+   - Metrics: RMSE, MAE, Directional Accuracy, R², MAPE
+   - Visualizations: 4 comprehensive plots saved to results/
+
+### Key Configuration Parameters
+
+Edit `config.yaml` to modify:
+
+- **Model**: `hidden_size: 96`, `sequence_length: 20`, `num_layers: 2`
+- **Training**: `learning_rate: 0.001`, `batch_size: 32`, `epochs: 200`
+- **Data**: Chronological split ratios, feature scaling settings
+
+### Troubleshooting & Debugging
+
+#### Common Issues & Solutions
+
+- **Import errors**: Ensure proper module structure with `__init__.py` files
+- **CUDA errors**: Set `device.use_cuda: false` in config.yaml for CPU-only
+- **Memory issues**: Reduce `batch_size` or `sequence_length` in config.yaml
+- **Poor performance**: Check feature scaling, try different `hidden_size`
+
+#### Monitoring Training
+
+- **Live progress**: Watch console logs during training
+- **Training history**: Check `results/training.log`
+- **Model checkpoints**: Best model saved at `results/models/best_model.pt`
+- **Evaluation results**: JSON metrics at `results/evaluation_results.json`
+
+#### Performance Analysis Locations
+
+- **Training metrics**: Final console output + training logs
+- **Test performance**: `results/evaluation_results.json`
+- **Visual analysis**: 4 plots in `results/plots/`
+  - `actual_vs_predicted_scatter.png` - Overall prediction quality
+  - `timeseries_comparison.png` - Temporal prediction patterns
+  - `residuals_analysis.png` - Error distribution analysis
+  - `distribution_comparison.png` - Statistical comparison
+
+### File-by-File Responsibilities
+
+| File                         | Purpose                | Key Classes/Functions          | When to Modify               |
+| ---------------------------- | ---------------------- | ------------------------------ | ---------------------------- |
+| `config.yaml`                | Hyperparameters        | Configuration dict             | Tuning model/training        |
+| `src/data/data_loader.py`    | Data preprocessing     | `DataLoader`                   | Changing data splits/scaling |
+| `src/data/dataset.py`        | PyTorch datasets       | `LSTMTimeSeriesDataset`        | Modifying sequence creation  |
+| `src/models/model.py`        | LSTM architecture      | `IronOreLSTM`                  | Changing model structure     |
+| `src/training/train.py`      | Training pipeline      | `LSTMTrainer`, `EarlyStopping` | Training modifications       |
+| `src/evaluation/evaluate.py` | Model evaluation       | `ModelEvaluator`               | Adding new metrics/plots     |
+| `main.py`                    | Pipeline orchestration | Pipeline functions             | Workflow changes             |
 
 ## 📋 Style & Conventions
 

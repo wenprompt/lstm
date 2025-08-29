@@ -1,0 +1,69 @@
+{
+  "configuration": {
+    "data": {
+      "consolidated_features": "data/processed/consolidated_features_y.pkl",
+      "results_dir": "results",
+      "plots_dir": "results/plots",
+      "models_dir": "results/models"
+    },
+    "model": {
+      "sequence_length": 10,
+      "hidden_size": 64,
+      "number_of_layers": 2,
+      "dropout_rate": 0.35,
+      "bidirectional": true,
+      "layer_norm": true,
+      "input_size": 12
+    },
+    "training": {
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "epochs": 100,
+      "early_stopping_patience": 15,
+      "gradient_clip_norm": 1.0,
+      "loss_function": "mse",
+      "optimizer": "adam"
+    },
+    "splits": {
+      "train_ratio": 0.7,
+      "val_ratio": 0.15,
+      "test_ratio": 0.15
+    },
+    "scaling": {
+      "scale_features": true,
+      "scale_target": false
+    },
+    "metrics": [
+      "rmse",
+      "mae",
+      "directional_accuracy"
+    ],
+    "device": {
+      "use_cuda": true
+    }
+  },
+  "training": {
+    "final_epoch": 54,
+    "total_time_minutes": 0.07271421353022257,
+    "best_val_loss": 2.3950917422771454,
+    "final_train_loss": 4.162676949250071,
+    "final_val_loss": 2.409986048936844,
+    "early_stopped": true
+  },
+  "evaluation": {
+    "test_metrics": {
+      "rmse": 1.2354351754219979,
+      "mae": 1.0216652154922485,
+      "mse": 1.526300072669983,
+      "directional_accuracy": 47.93388429752066,
+      "r_squared": -0.2538958787918091,
+      "mape": 266.8970947265625
+    },
+    "plot_files": {
+      "scatter": "results/plots/actual_vs_predicted_scatter.png",
+      "timeseries": "results/plots/timeseries_comparison.png",
+      "residuals": "results/plots/residuals_analysis.png",
+      "distributions": "results/plots/distribution_comparison.png"
+    }
+  }
+}
