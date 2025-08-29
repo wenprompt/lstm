@@ -32,42 +32,9 @@ Avoid building functionality on speculation. Implement features only when they a
 
 ### Project Architecture
 
-Add on here
+- TO DO
 
 ## 🛠️ Development Environment
-
-### UV Package Management
-
-This project uses UV for blazing-fast Python package and environment management.
-
-```bash
-# Install UV (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Create virtual environment
-uv venv
-
-# Sync dependencies
-uv sync
-
-# Add a package ***NEVER UPDATE A DEPENDENCY DIRECTLY IN PYPROJECT.toml***
-# ALWAYS USE UV ADD
-uv add requests
-
-# Add development dependency
-uv add --dev pytest ruff mypy
-
-# Remove a package
-uv remove requests
-
-# Run commands in the environment
-uv run python script.py
-uv run pytest
-uv run ruff check .
-
-# Install specific Python version
-uv python install 3.12
-```
 
 ### Development Commands
 
@@ -95,6 +62,12 @@ uv run mypy src/
 
 # Run pre-commit hooks
 uv run pre-commit run --all-files
+
+# Build continuous futures series
+uv run python scripts/build_continuous_futures.py
+
+# Build consolidated features dataset
+uv run python scripts/build_consolidated_features.py
 ```
 
 ## 📋 Style & Conventions

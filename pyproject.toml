@@ -13,5 +13,11 @@ dependencies = [
     "pydantic",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest", "ruff", "jupyter"]
+[dependency-groups]
+dev = [
+    "mypy>=1.17.1",
+    "pandas-stubs>=2.3.0.250703",
+    "pytest>=8.4.1",
+    "ruff>=0.12.8",
+    "scikit-learn-stubs>=0.0.3",
+]

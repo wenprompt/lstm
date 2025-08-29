@@ -85,38 +85,48 @@ The 12 features are sourced from 6 separate data files requiring different proce
   - Handle missing values and ensure proper date alignment
 - **Data Validation**: Check for missing dates, data quality issues, and consistent time series coverage
 - **Date Filtering**: Filter all datasets to **March 30, 2022 onwards** due to indian pellet premium data availability
-- **Output**: Clean, standardized DataFrames ready for feature engineering (covering ~2.4 years of data)
+- **Output**: Clean, standardized DataFrames ready for feature engineering (covering ~3+ years of data)
 
 ### FR2: M+1 Continuous Futures Series Construction (`features.py`)
 
-**Objective**: Create continuous daily price series for 65% M+1 DSP and 62% M+1 DSP from raw monthly futures contracts.
+**Objective**: Create continuous daily price series for 65% M+1 DSP and 62% M+1 close from raw monthly futures contracts.
 
 **Input Sources**:
 
 - `Raw_M65F_DSP.pkl` → **65% M+1 DSP** continuous series
-- `Raw_FEF_Close.pkl` → **62% M+1 DSP** continuous series
+- `Raw_FEF_Close.pkl` → **62% M+1 Close** continuous series
 
 **M+1 Contract Logic**:
 
-- For any date in month **M**, use the futures contract expiring in month **M+2**
-- Example: January 2024 → Use March 2024 contract (M+1)
+- For any date in month **M**, use the futures contract expiring in month **M+1**
+- Example: January 2024 → Use February 2024 contract (M+1)
 
-**Rollover Schedule**: **End-of-Month Transitions**
+**Backward Cumulative Adjustment Method**:
 
-- **January 31 → February 1**: Switch from March contract to April contract
-- **February 29 → March 1**: Switch from April contract to May contract
-- **March 31 → April 1**: Switch from May contract to June contract
-- Continue monthly pattern...
+The continuous M+1 series construction uses a backward cumulative process that works as a chain reaction moving into the past:
 
-**Proportional Adjustment Method**:
+**Step 1: Identify M+1 contract for each calendar month**
+- For any date in month M, use the futures contract expiring in month M+1
+- January 2024 → Use February 2024 contract (M+1)
+- February 2024 → Use March 2024 contract (M+1)
+- March 2024 → Use April 2024 contract (M+1)
 
-```python
-# At month-end rollover (e.g., Jan 31 → Feb 1):
-adjustment_ratio = old_contract_price[last_trading_day] / new_contract_price[last_trading_day]
+**Step 2: Work backward from most recent contract**
+- **Anchor (Present Day)**: The most recent contract's prices are the "true" prices (never adjusted)
+- Example: Today we are in December 2025 contract (anchor - never adjusted)
 
-# Apply to all historical prices of new contract:
-adjusted_new_contract = original_new_contract * adjustment_ratio
-```
+**First Step Back (Nov -> Dec rollover)**:
+- Find last trading day of November 2025
+- Calculate ratio: Ratio_1 = Dec_2025_Price / Nov_2025_Price (on rollover day)
+- Adjust entire November 2025 contract history: Nov_adjusted = Nov_original × Ratio_1
+
+**Second Step Back (Oct -> Nov rollover)**:
+- Find last trading day of October 2025
+- Calculate ratio using ADJUSTED Nov price: Ratio_2 = Nov_adjusted_Price / Oct_2025_Price
+- Adjust entire October 2025 contract history: Oct_adjusted = Oct_original × Ratio_2
+
+**Continue backward through ALL historical contracts**
+- Each adjustment uses the previously adjusted contract as reference
 
 **Algorithm**:
 
@@ -126,7 +136,7 @@ adjusted_new_contract = original_new_contract * adjustment_ratio
 4. **Chain Series**: Combine adjusted contract segments into continuous daily series
 5. **Handle Missing Values**: Interpolate NaN values in final continuous series
 
-**Output**: Two continuous daily price series (65% M+1 DSP, 62% M+1 DSP) preserving historical percentage returns.
+**Output**: Two continuous daily price series (65% M+1 DSP, 62% M+1 Close) preserving historical percentage returns.
 
 ### FR3: Feature Engineering & Scaling (`features.py`)
 
@@ -135,7 +145,7 @@ adjusted_new_contract = original_new_contract * adjustment_ratio
 - **6 from `group.csv`** (daily): Ukraine Concentrate fines, lump premium, IOCJ Import margin, rebar steel margin, indian pellet premium, (IOCJ+SSF)/2-PBF
 - **2 from weekly sources** (forward-filled to daily): IOCJ Inventory, IOCJ Weekly Shipment
 - **2 from `Raw_65and62_Index.csv`** (daily): 62 Index, 65 Index
-- **2 from processed futures** (continuous series): 65% M+1 DSP, 62% M+1 DSP
+- **2 from processed futures** (continuous series): 65% M+1 DSP, 62% M+1 Close
 
 #### Target Variable (y)
 

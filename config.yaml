@@ -1,0 +1,94 @@
+# Configuration file for LSTM Iron Ore Forecasting Model
+# All hyperparameters and settings centralized here per PRD requirements
+
+# Data configuration - file paths and preprocessing settings
+data:
+  # Input data file (contains 12 features + Y target variable)
+  consolidated_features: "data/processed/consolidated_features_y.pkl"
+  
+  # Output directories for results
+  results_dir: "results"
+  plots_dir: "results/plots"
+  models_dir: "results/models"
+
+# Model architecture hyperparameters
+model:
+  # Number of time steps in each input sequence for LSTM
+  sequence_length: 20
+  
+  # Number of hidden units in LSTM layers
+  hidden_size: 96
+  
+  # Number of stacked LSTM layers
+  number_of_layers: 2
+  
+  # Dropout rate for regularization (prevent overfitting)
+  dropout_rate: 0.35
+  
+  # Use bidirectional LSTM (processes sequences forward and backward)
+  bidirectional: true
+  
+  # Apply layer normalization for training stability
+  layer_norm: true
+  
+  # Number of input features (12 features)
+  input_size: 12
+
+# Training configuration
+training:
+  # Number of samples per training batch
+  batch_size: 32
+  
+  # Learning rate for Adam optimizer
+  learning_rate: 0.001
+  
+  # Maximum number of training epochs
+  epochs: 200
+  
+  # Early stopping patience (stop if no validation improvement for N epochs)
+  early_stopping_patience: 15
+  
+  # Gradient clipping norm to prevent exploding gradients
+  gradient_clip_norm: 1.0
+  
+  # Loss function (Mean Squared Error for regression)
+  loss_function: "mse"
+  
+  # Optimizer type
+  optimizer: "adam"
+
+# Data splitting ratios (chronological splits per PRD)
+# Total period: March 30, 2022 - Present (~2.4 years, 868 valid samples)
+splits:
+  # Training set: ~70% (~1.7 years, ~607 samples)
+  train_ratio: 0.70
+  
+  # Validation set: ~15% (~4 months, ~130 samples)
+  val_ratio: 0.15
+  
+  # Test set: ~15% (~4 months, ~131 samples)
+  test_ratio: 0.15
+
+# Feature scaling configuration
+scaling:
+  # Scale input features to [0,1] range using MinMaxScaler
+  scale_features: true
+  
+  # Do NOT scale target variable (Y) - already percentage returns
+  scale_target: false
+
+# Model evaluation metrics
+metrics:
+  # Root Mean Squared Error
+  - "rmse"
+  
+  # Mean Absolute Error  
+  - "mae"
+  
+  # Directional Accuracy (% of correct directional predictions)
+  - "directional_accuracy"
+
+# Device configuration
+device:
+  # Use GPU if available, otherwise CPU
+  use_cuda: true

@@ -67,7 +67,7 @@ def inspect_pickle_file(file_path: str) -> None:
 
 def main():
     """Main function to inspect both pickle files."""
-    data_dir = Path("/home/wenhaowang/projects/m65lstm/data")
+    data_dir = Path("data/raw")
     
     pickle_files = [
         "Raw_M65F_DSP.pkl",
