@@ -175,9 +175,9 @@ class IronOreLSTM(nn.Module):
             "lstm_parameters": lstm_params,
             "fc_parameters": fc_params,
             "parameter_breakdown": {
-                "lstm": f"{lstm_params:,}",
+                "lstm": lstm_params,
                 "layer_norm": sum(p.numel() for p in self.layer_norm.parameters()) if self.layer_norm else 0,
-                "fully_connected": f"{fc_params:,}"
+                "fully_connected": fc_params
             }
         }
         
@@ -231,17 +231,30 @@ def create_model(config: Dict[str, Any]) -> IronOreLSTM:
     """
     logger.info("Creating LSTM model from configuration...")
     
+    # Calculate dynamic input size based on selected features
+    selected_features = config.get("features", [])
+    if selected_features:
+        dynamic_input_size = len(selected_features)
+        config["model"]["input_size"] = dynamic_input_size
+        logger.info(f"Dynamic input size calculated: {dynamic_input_size} features")
+    else:
+        logger.warning("No features specified in config, using default input_size from config")
+    
     model = IronOreLSTM(config)
     
     # Log model information
     model_info = model.get_model_info()
     logger.info(f"Model created successfully:")
     logger.info(f"  Architecture: {model_info['architecture']}")
+    logger.info(f"  Input features: {model_info['input_size']}")
     logger.info(f"  Total parameters: {model_info['total_parameters']:,}")
     logger.info(f"  Trainable parameters: {model_info['trainable_parameters']:,}")
     
     # Model complexity summary
-    complexity = "SIMPLE" if model_info['total_parameters'] < 10000 else "MODERATE" if model_info['total_parameters'] < 100000 else "COMPLEX"
+    thresholds = config.get("thresholds", {})
+    simple_threshold = thresholds.get("simple_model_params", 10000)
+    moderate_threshold = thresholds.get("moderate_model_params", 100000)
+    complexity = "SIMPLE" if model_info['total_parameters'] < simple_threshold else "MODERATE" if model_info['total_parameters'] < moderate_threshold else "COMPLEX"
     logger.info(f"🧠 Neural Network: {complexity} model with {model_info['total_parameters']/1000:.0f}K parameters, designed to learn iron ore price patterns")
     
     return model

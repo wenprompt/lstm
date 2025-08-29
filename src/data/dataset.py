@@ -133,6 +133,7 @@ def create_dataloaders(train_df: pd.DataFrame, val_df: pd.DataFrame,
     # Get parameters from config
     sequence_length = config["model"]["sequence_length"]
     batch_size = config["training"]["batch_size"]
+    num_workers = config.get("dataloader", {}).get("num_workers", 0)
     
     # Create Dataset instances for each split
     train_dataset = LSTMTimeSeriesDataset(train_df, sequence_length)
@@ -145,7 +146,7 @@ def create_dataloaders(train_df: pd.DataFrame, val_df: pd.DataFrame,
         dataset=train_dataset,
         batch_size=batch_size,
         shuffle=True,  # Randomize training batches
-        num_workers=0,  # Use main process (avoids multiprocessing issues)
+        num_workers=num_workers,  # Configurable worker processes
         drop_last=False  # Keep all samples
     )
     
@@ -154,7 +155,7 @@ def create_dataloaders(train_df: pd.DataFrame, val_df: pd.DataFrame,
         dataset=val_dataset,
         batch_size=batch_size,
         shuffle=False,  # Keep order for consistent validation
-        num_workers=0,
+        num_workers=num_workers,
         drop_last=False
     )
     
@@ -163,7 +164,7 @@ def create_dataloaders(train_df: pd.DataFrame, val_df: pd.DataFrame,
         dataset=test_dataset,
         batch_size=batch_size,
         shuffle=False,  # Keep chronological order for testing
-        num_workers=0,
+        num_workers=num_workers,
         drop_last=False
     )
     

@@ -11,6 +11,22 @@ data:
   plots_dir: "results/plots"
   models_dir: "results/models"
 
+# Feature selection - configure which features to use for training/testing
+# Available features from consolidated dataset:
+features:
+  - "price_65_m1" # Continuous M+1 65% iron ore futures price
+  - "price_62_m1" # Continuous M+1 62% iron ore futures price
+  - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
+  - "lump premium" # Iron ore lump premium
+  - "IOCJ Import margin" # IOCJ import margin
+  - "rebar steel margin " # Rebar steel margin (note: trailing space in original data)
+  - "indian pellet premium" # Indian pellet premium
+  - "(IOCJ+SSF)/2-PBF" # Combined index calculation
+  - "62 Index" # 62% grade index
+  - "65 Index" # 65% grade index
+  - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
+  - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
+
 # Model architecture hyperparameters
 model:
   # Number of time steps in each input sequence for LSTM
@@ -31,7 +47,8 @@ model:
   # Apply layer normalization for training stability
   layer_norm: true
 
-  # Number of input features (12 features)
+  # Number of input features (dynamically calculated from selected features)
+  # Note: This will be automatically updated based on features list above
   input_size: 12
 
 # Training configuration
@@ -61,13 +78,13 @@ training:
 # Total period: March 30, 2022 - Present (~2.4 years worth, 868 valid samples)
 splits:
   # Training set: ~70% (~1.7 years, ~607 samples)
-  train_ratio: 0.70
+  train_ratio: 0.75
 
   # Validation set: ~15% (~4 months, ~130 samples)
-  val_ratio: 0.15
+  val_ratio: 0.05
 
   # Test set: ~15% (~4 months, ~131 samples)
-  test_ratio: 0.15
+  test_ratio: 0.20
 
 # Feature scaling configuration
 scaling:
@@ -92,3 +109,38 @@ metrics:
 device:
   # Use GPU if available, otherwise CPU
   use_cuda: true
+
+# Training assessment thresholds
+thresholds:
+  # Performance assessment (validation loss improvement)
+  plateau_tolerance: 0.001 # Minimum improvement to avoid "PLATEAU" status
+
+  # Speed assessment (seconds per epoch)
+  fast_epoch_time: 10 # Below this = "FAST"
+  medium_epoch_time: 30 # Below this = "MEDIUM", above = "SLOW"
+
+  # Total time assessment (seconds)
+  quick_training_time: 300 # 5 minutes - Below this = "QUICK"
+  moderate_training_time: 1800 # 30 minutes - Below this = "MODERATE", above = "LENGTHY"
+
+  # Model complexity thresholds (parameter count)
+  simple_model_params: 10000 # Below this = "SIMPLE"
+  moderate_model_params: 100000 # Below this = "MODERATE", above = "COMPLEX"
+
+  # Evaluation quality thresholds
+  excellent_accuracy: 60 # Directional accuracy >= this = "EXCELLENT"
+  good_accuracy: 55 # Directional accuracy >= this = "GOOD"
+  fair_accuracy: 50 # Directional accuracy >= this = "FAIR", below = "POOR"
+
+  strong_correlation: 0.5 # R² >= this = "STRONG"
+  moderate_correlation: 0.2 # R² >= this = "MODERATE", below = "WEAK"
+
+# DataLoader configuration
+dataloader:
+  # Number of worker processes for data loading (0 = main process only)
+  num_workers: 0
+
+# Data validation tolerances
+validation:
+  # Tolerance for split ratio validation (should sum to 1.0)
+  split_ratio_tolerance: 0.01

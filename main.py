@@ -231,6 +231,7 @@ def evaluate_trained_model(model, test_loader, config: Dict[str, Any]) -> Dict[s
         model=model,
         test_loader=test_loader, 
         device=device,
+        config=config,
         save_dir=Path("results")
     )
     

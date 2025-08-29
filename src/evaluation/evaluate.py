@@ -22,7 +22,7 @@ import seaborn as sns
 from sklearn.metrics import mean_squared_error, mean_absolute_error  # type: ignore
 from torch.utils.data import DataLoader
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 import logging
 import json
 from datetime import datetime
@@ -38,16 +38,18 @@ class ModelEvaluator:
     for time series forecasting performance assessment.
     """
     
-    def __init__(self, model: nn.Module, device: torch.device):
+    def __init__(self, model: nn.Module, device: torch.device, config: Dict[str, Any]):
         """
         Initialize model evaluator.
         
         Args:
             model: Trained LSTM model to evaluate
             device: Device to run evaluation on (CPU or CUDA)
+            config: Configuration dictionary for thresholds
         """
         self.model = model
         self.device = device
+        self.config = config
         self.model.to(self.device)
         
         # Evaluation results storage
@@ -145,10 +147,17 @@ class ModelEvaluator:
         logger.info(f"  R²: {r_squared:.4f}")
         logger.info(f"  MAPE: {mape:.2f}%")
         
-        # Layman performance summary
-        accuracy_rating = "EXCELLENT" if directional_accuracy >= 60 else "GOOD" if directional_accuracy >= 55 else "FAIR" if directional_accuracy >= 50 else "POOR"
+        # Layman performance summary with configurable thresholds
+        thresholds = self.config.get("thresholds", {})
+        excellent_thresh = thresholds.get("excellent_accuracy", 60)
+        good_thresh = thresholds.get("good_accuracy", 55) 
+        fair_thresh = thresholds.get("fair_accuracy", 50)
+        strong_corr = thresholds.get("strong_correlation", 0.5)
+        mod_corr = thresholds.get("moderate_correlation", 0.2)
+        
+        accuracy_rating = "EXCELLENT" if directional_accuracy >= excellent_thresh else "GOOD" if directional_accuracy >= good_thresh else "FAIR" if directional_accuracy >= fair_thresh else "POOR"
         error_rating = "LOW" if rmse < 1.0 else "MODERATE" if rmse < 2.0 else "HIGH"
-        correlation_rating = "STRONG" if r_squared > 0.5 else "MODERATE" if r_squared > 0.2 else "WEAK"
+        correlation_rating = "STRONG" if r_squared > strong_corr else "MODERATE" if r_squared > mod_corr else "WEAK"
         logger.info(f"📈 Model Quality: {accuracy_rating} direction prediction ({directional_accuracy:.1f}%), {error_rating} error rate, {correlation_rating} correlation")
         
         return self.evaluation_metrics
@@ -465,7 +474,8 @@ ACTUAL STATISTICS:
 
 
 def evaluate_model(model: nn.Module, test_loader: DataLoader, 
-                  device: torch.device, save_dir: Path = Path("results")) -> Dict[str, Any]:
+                  device: torch.device, config: Dict[str, Any], 
+                  save_dir: Path = Path("results")) -> Dict[str, Any]:
     """
     Complete model evaluation pipeline.
     
@@ -474,6 +484,7 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader,
         test_loader: DataLoader with test data
         device: Device for computation
         save_dir: Directory to save results
+        config: Configuration dictionary for thresholds
         
     Returns:
         Dictionary containing evaluation results and file paths
@@ -481,7 +492,7 @@ def evaluate_model(model: nn.Module, test_loader: DataLoader,
     logger.info("Starting complete model evaluation...")
     
     # Create evaluator
-    evaluator = ModelEvaluator(model, device)
+    evaluator = ModelEvaluator(model, device, config)
     
     # Generate predictions
     predictions, actuals = evaluator.predict(test_loader)
