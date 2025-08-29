@@ -85,7 +85,8 @@ class DataLoader:
         
         # Validate ratios sum to 1.0
         total_ratio = train_ratio + val_ratio + test_ratio
-        if abs(total_ratio - 1.0) > 0.01:
+        tolerance = self.config.get("validation", {}).get("split_ratio_tolerance", 0.01)
+        if abs(total_ratio - 1.0) > tolerance:
             raise ValueError(f"Split ratios must sum to 1.0, got {total_ratio}")
         
         # Calculate split indices (chronological order)
@@ -108,6 +109,57 @@ class DataLoader:
         logger.info(f"📊 Data Split: Using {train_years:.1f} years for training, {total_samples} total daily observations")
         
         return train_df, val_df, test_df
+
+    
+    def filter_selected_features(self, train_df: pd.DataFrame, val_df: pd.DataFrame, 
+                                 test_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """
+        Filter datasets to include only selected features from config plus Y target.
+        
+        Args:
+            train_df: Training dataset
+            val_df: Validation dataset
+            test_df: Test dataset
+            
+        Returns:
+            Tuple of filtered (train_df, val_df, test_df) with selected features only
+        """
+        logger.info("Applying configurable feature selection...")
+        
+        # Get selected features from config
+        selected_features = self.config.get("features", [])
+        if not selected_features:
+            logger.warning("No features specified in config, using all available features")
+            selected_features = [col for col in train_df.columns if col != 'Y']
+        
+        # Always include Y target variable
+        columns_to_keep = selected_features + ['Y']
+        
+        # Validate selected features exist in data
+        available_features = [col for col in train_df.columns if col != 'Y']
+        missing_features = [f for f in selected_features if f not in available_features]
+        if missing_features:
+            raise ValueError(f"Selected features not found in dataset: {missing_features}")
+        
+        # Filter datasets to selected features
+        train_filtered = train_df[columns_to_keep].copy()
+        val_filtered = val_df[columns_to_keep].copy()
+        test_filtered = test_df[columns_to_keep].copy()
+        
+        logger.info(f"Feature selection applied:")
+        logger.info(f"  Available features: {len(available_features)} ({available_features})")
+        logger.info(f"  Selected features: {len(selected_features)} ({selected_features})")
+        logger.info(f"  Filtered dataset shape: {train_filtered.shape[1]-1} features + Y target")
+        
+        # Feature selection summary for layman
+        feature_reduction = len(available_features) - len(selected_features)
+        if feature_reduction > 0:
+            logger.info(f"🎯 Feature Focus: Using {len(selected_features)}/{len(available_features)} features "
+                       f"(removed {feature_reduction} features to focus model on most relevant signals)")
+        else:
+            logger.info(f"🎯 Feature Focus: Using all {len(selected_features)} available features for comprehensive analysis")
+        
+        return train_filtered, val_filtered, test_filtered
         
     def scale_features(self, train_df: pd.DataFrame, val_df: pd.DataFrame, 
                       test_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -156,13 +208,16 @@ class DataLoader:
         Complete data loading and preprocessing pipeline.
         
         Returns:
-            Tuple of processed (train_df, val_df, test_df) with scaled features
+            Tuple of processed (train_df, val_df, test_df) with selected features and scaling
         """
         # Load consolidated dataset
         self.load_consolidated_data()
         
         # Create chronological splits
         train_df, val_df, test_df = self.create_chronological_splits()
+        
+        # Apply configurable feature selection
+        train_df, val_df, test_df = self.filter_selected_features(train_df, val_df, test_df)
         
         # Apply feature scaling (if enabled in config)
         if self.config["scaling"]["scale_features"]:

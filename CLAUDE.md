@@ -144,7 +144,7 @@ When you execute `uv run python main.py`, the complete LSTM pipeline runs automa
 
    ```
    Epoch 15/100 - Training Phase
-       Batch  20/ 19 | Loss: 1.234567 | Avg Loss: 1.345678 | Progress:  95.0%
+       Batch  19/ 19 | Loss: 1.234567 | Avg Loss: 1.345678 | Progress:  95.0%
    Epoch 15/100 - Validation Phase
    Epoch 15/100 Complete:
      Train Loss: 1.234567
@@ -526,6 +526,121 @@ def log_execution(func):
 ```
 
 ## 🔧 Configuration Management
+
+### LSTM Project Configuration (config.yaml)
+
+This project uses a centralized YAML configuration file for all hyperparameters and settings.
+
+#### Threshold Configuration System
+
+The project now uses configurable thresholds for all performance assessments. You can customize these in `config.yaml` under the `thresholds` section:
+
+```yaml
+# Training assessment thresholds
+thresholds:
+  # Performance assessment (validation loss improvement)
+  plateau_tolerance: 0.001  # Minimum improvement to avoid "PLATEAU" status
+  
+  # Speed assessment (seconds per epoch)
+  fast_epoch_time: 10    # Below this = "FAST"
+  medium_epoch_time: 30  # Below this = "MEDIUM", above = "SLOW"
+  
+  # Total time assessment (seconds)
+  quick_training_time: 300   # 5 minutes - Below this = "QUICK"
+  moderate_training_time: 1800  # 30 minutes - Below this = "MODERATE", above = "LENGTHY"
+  
+  # Model complexity thresholds (parameter count)
+  simple_model_params: 10000    # Below this = "SIMPLE"
+  moderate_model_params: 100000 # Below this = "MODERATE", above = "COMPLEX"
+  
+  # Evaluation quality thresholds
+  excellent_accuracy: 60  # Directional accuracy >= this = "EXCELLENT"
+  good_accuracy: 55      # Directional accuracy >= this = "GOOD"
+  fair_accuracy: 50      # Directional accuracy >= this = "FAIR", below = "POOR"
+  
+  strong_correlation: 0.5    # R² >= this = "STRONG"
+  moderate_correlation: 0.2  # R² >= this = "MODERATE", below = "WEAK"
+```
+
+**How to Tweak Thresholds for Different Outcomes:**
+
+| **Want More...** | **Adjust These Thresholds** | **Example Changes** |
+|------------------|------------------------------|---------------------|
+| **Stricter "EXCELLENT" rating** | Increase `excellent_accuracy` | `60 → 65` (need 65% accuracy for "EXCELLENT") |
+| **More lenient quality ratings** | Decrease accuracy thresholds | `excellent: 60→55, good: 55→50, fair: 50→45` |
+| **Faster training classification** | Increase speed thresholds | `fast_epoch_time: 10→20` (20s still "FAST") |
+| **Stricter model complexity** | Decrease parameter thresholds | `simple_model_params: 10000→5000` |
+| **Higher correlation standards** | Increase correlation thresholds | `strong_correlation: 0.5→0.7` |
+
+**Practical Tuning Examples:**
+
+```yaml
+# For iron ore trading (stricter requirements)
+thresholds:
+  excellent_accuracy: 65  # Need 65% for trading confidence
+  good_accuracy: 60      # 60% minimum for trading signals
+  fair_accuracy: 55      # 55% minimum for trend analysis
+  
+# For research experiments (more lenient)
+thresholds:
+  excellent_accuracy: 55  # 55% considered excellent for research
+  good_accuracy: 52      # 52% considered good
+  fair_accuracy: 50      # 50% break-even point
+```
+
+#### Feature Selection Configuration
+
+You can also configure which features to use for training/testing by modifying the `features` list in `config.yaml`:
+
+```yaml
+# Feature selection - configure which features to use for training/testing
+# Available features from consolidated dataset:
+features:
+  - "price_65_m1"              # Continuous M+1 65% iron ore futures price
+  - "price_62_m1"              # Continuous M+1 62% iron ore futures price  
+  - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
+  - "lump premium"             # Iron ore lump premium
+  - "IOCJ Import margin"       # IOCJ import margin
+  - "rebar steel margin "      # Rebar steel margin (note: trailing space in original data)
+  - "indian pellet premium"    # Indian pellet premium
+  - "(IOCJ+SSF)/2-PBF"        # Combined index calculation
+  - "62 Index"                 # 62% grade index
+  - "65 Index"                 # 65% grade index
+  - "IOCJ Inventory"           # IOCJ inventory levels (weekly, forward-filled)
+  - "IOCJ Weekly shipment"     # IOCJ weekly shipment volumes (weekly, forward-filled)
+```
+
+**Usage Examples:**
+
+```yaml
+# Use only price-related features (2 features)
+features:
+  - "price_65_m1"
+  - "price_62_m1"
+
+# Use price and index features (4 features)  
+features:
+  - "price_65_m1"
+  - "price_62_m1"
+  - "62 Index"
+  - "65 Index"
+
+# Use single feature for testing (1 feature)
+features:
+  - "price_65_m1"
+```
+
+**Key Benefits:**
+- **Experiment with different feature combinations** to find optimal predictive signals
+- **Reduce model complexity** by removing less relevant features
+- **Focus on domain-specific features** (e.g., only futures prices, only indices)
+- **Test feature importance** by comparing models with different feature sets
+
+**Technical Notes:**
+- The Y target variable is automatically preserved regardless of feature selection
+- Model input size is dynamically calculated based on selected features
+- Feature scaling is applied only to selected features
+- All selected features must exist in the consolidated dataset
 
 ### Environment Variables and Settings
 

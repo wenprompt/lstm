@@ -172,9 +172,11 @@ class LSTMTrainer:
         num_batches = 0
         
         for batch_idx, (sequences, targets) in enumerate(train_loader):
-            # Move data to device
-            sequences = sequences.to(self.device)  # Shape: (batch, seq_len, features)
-            targets = targets.to(self.device)      # Shape: (batch, 1)
+            # Move data to device and ensure float tensors
+            sequences = sequences.to(self.device).float()  # (batch, seq_len, features)
+            targets = targets.to(self.device).float()      # (batch,) or (batch,1)
+            if targets.ndim == 1:
+                targets = targets.unsqueeze(1)
             
             # Zero gradients (verified PyTorch pattern)
             self.optimizer.zero_grad()
@@ -183,7 +185,7 @@ class LSTMTrainer:
             predictions = self.model(sequences)  # Shape: (batch, 1)
             
             # Calculate loss
-            loss = self.criterion(predictions, targets.unsqueeze(1))
+            loss = self.criterion(predictions, targets)
             
             # Backward pass
             loss.backward()
@@ -198,12 +200,13 @@ class LSTMTrainer:
             total_loss += loss.item()
             num_batches += 1
             
-            # Log progress occasionally with more detail
-            if batch_idx % 20 == 0:
-                logger.info(f"    Batch {batch_idx:3d}/{len(train_loader):3d} "
+            # Log progress at regular intervals (every 5 batches or 25% intervals)
+            log_interval = max(1, len(train_loader) // 4)  # Log 4 times per epoch minimum
+            if batch_idx % log_interval == 0 or batch_idx == len(train_loader) - 1:
+                logger.info(f"    Batch {batch_idx+1:3d}/{len(train_loader):3d} "
                            f"| Loss: {loss.item():.6f} "
-                           f"| Avg Loss: {total_loss/(num_batches+1):.6f} "
-                           f"| Progress: {100*batch_idx/len(train_loader):5.1f}%")
+                           f"| Avg Loss: {total_loss/num_batches:.6f} "
+                           f"| Progress: {100*(batch_idx+1)/len(train_loader):5.1f}%")
         
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
         return avg_loss
@@ -222,24 +225,35 @@ class LSTMTrainer:
         total_loss = 0.0
         num_batches = 0
         
+        # Log validation batch count for clarity
+        total_val_batches = len(val_loader)
+        logger.info(f"    Validating on {total_val_batches} batches...")
+        
         # Disable gradient computation for validation
         with torch.no_grad():
-            for sequences, targets in val_loader:
-                # Move data to device
-                sequences = sequences.to(self.device)
-                targets = targets.to(self.device)
+            for batch_idx, (sequences, targets) in enumerate(val_loader):
+                # Move data to device and ensure float tensors
+                sequences = sequences.to(self.device).float()
+                targets = targets.to(self.device).float()
+                if targets.ndim == 1:
+                    targets = targets.unsqueeze(1)
                 
                 # Forward pass
                 predictions = self.model(sequences)
                 
                 # Calculate loss
-                loss = self.criterion(predictions, targets.unsqueeze(1))
+                loss = self.criterion(predictions, targets)
                 
                 # Accumulate loss
                 total_loss += loss.item()
                 num_batches += 1
+                
+                # Log validation progress (less frequent than training)
+                if batch_idx == 0 or batch_idx == total_val_batches - 1:
+                    logger.info(f"    Val Batch {batch_idx+1:2d}/{total_val_batches:2d} | Loss: {loss.item():.6f}")
         
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
+        logger.info(f"    Validation completed: {num_batches} batches, avg loss: {avg_loss:.6f}")
         return avg_loss
     
     def train(self, train_loader: DataLoader, val_loader: DataLoader, 
@@ -264,8 +278,11 @@ class LSTMTrainer:
         save_dir.mkdir(parents=True, exist_ok=True)
         
         # Training metrics
+        best_model_path = save_dir / "best_model.pt"
         best_val_loss = float('inf')
         start_time = time.time()
+        train_loss: float = float('nan')
+        val_loss: float = float('nan')
         
         for epoch in range(self.epochs):
             epoch_start_time = time.time()
@@ -302,14 +319,18 @@ class LSTMTrainer:
             logger.info(f"  Best Val:   {min(self.history['val_loss']):.6f}")
             
             # Layman summary
-            performance = "IMPROVING" if is_best else "PLATEAU" if abs(val_loss - best_val_loss) < 0.001 else "DECLINING"
-            speed = "FAST" if epoch_time < 10 else "MEDIUM" if epoch_time < 30 else "SLOW"
+            thresholds = self.config.get("thresholds", {})
+            plateau_tol = thresholds.get("plateau_tolerance", 0.001)
+            fast_time = thresholds.get("fast_epoch_time", 10)
+            medium_time = thresholds.get("medium_epoch_time", 30)
+            
+            performance = "IMPROVING" if is_best else "PLATEAU" if abs(val_loss - best_val_loss) < plateau_tol else "DECLINING"
+            speed = "FAST" if epoch_time < fast_time else "MEDIUM" if epoch_time < medium_time else "SLOW"
             logger.info(f"  📊 Summary: Model performance is {performance}, training speed is {speed}")
             
             # Save best model
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                best_model_path = save_dir / "best_model.pt"
                 torch.save({
                     'epoch': epoch + 1,
                     'model_state_dict': self.model.state_dict(),
@@ -338,7 +359,10 @@ class LSTMTrainer:
         
         # Training completion summary
         early_stopped_msg = "stopped early (model stopped improving)" if self.early_stopping.early_stop else "completed all epochs"
-        time_assessment = "QUICK" if total_time < 300 else "MODERATE" if total_time < 1800 else "LENGTHY"
+        thresholds = self.config.get("thresholds", {})
+        quick_time = thresholds.get("quick_training_time", 300)
+        moderate_time = thresholds.get("moderate_training_time", 1800)
+        time_assessment = "QUICK" if total_time < quick_time else "MODERATE" if total_time < moderate_time else "LENGTHY"
         logger.info(f"🎯 Training Summary: {early_stopped_msg}, took {time_assessment.lower()} time ({total_time/60:.1f} min)")
         
         # Save final model and training history

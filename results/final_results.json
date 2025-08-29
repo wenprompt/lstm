@@ -6,6 +6,20 @@
       "plots_dir": "results/plots",
       "models_dir": "results/models"
     },
+    "features": [
+      "price_65_m1",
+      "price_62_m1",
+      "Ukraine Concentrate fines",
+      "lump premium",
+      "IOCJ Import margin",
+      "rebar steel margin ",
+      "indian pellet premium",
+      "(IOCJ+SSF)/2-PBF",
+      "62 Index",
+      "65 Index",
+      "IOCJ Inventory",
+      "IOCJ Weekly shipment"
+    ],
     "model": {
       "sequence_length": 10,
       "hidden_size": 64,
@@ -25,9 +39,9 @@
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.7,
-      "val_ratio": 0.15,
-      "test_ratio": 0.15
+      "train_ratio": 0.75,
+      "val_ratio": 0.05,
+      "test_ratio": 0.2
     },
     "scaling": {
       "scale_features": true,
@@ -40,24 +54,44 @@
     ],
     "device": {
       "use_cuda": true
+    },
+    "thresholds": {
+      "plateau_tolerance": 0.001,
+      "fast_epoch_time": 10,
+      "medium_epoch_time": 30,
+      "quick_training_time": 300,
+      "moderate_training_time": 1800,
+      "simple_model_params": 10000,
+      "moderate_model_params": 100000,
+      "excellent_accuracy": 60,
+      "good_accuracy": 55,
+      "fair_accuracy": 50,
+      "strong_correlation": 0.5,
+      "moderate_correlation": 0.2
+    },
+    "dataloader": {
+      "num_workers": 0
+    },
+    "validation": {
+      "split_ratio_tolerance": 0.01
     }
   },
   "training": {
-    "final_epoch": 54,
-    "total_time_minutes": 0.07271421353022257,
-    "best_val_loss": 2.3950917422771454,
-    "final_train_loss": 4.162676949250071,
-    "final_val_loss": 2.409986048936844,
+    "final_epoch": 32,
+    "total_time_minutes": 0.05490357478459676,
+    "best_val_loss": 1.318146973848343,
+    "final_train_loss": 4.039532757940746,
+    "final_val_loss": 3.3928414583206177,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.2354351754219979,
-      "mae": 1.0216652154922485,
-      "mse": 1.526300072669983,
-      "directional_accuracy": 47.93388429752066,
-      "r_squared": -0.2538958787918091,
-      "mape": 266.8970947265625
+      "rmse": 1.3908128504371466,
+      "mae": 1.150180697441101,
+      "mse": 1.934360384941101,
+      "directional_accuracy": 50.0,
+      "r_squared": -0.6830394268035889,
+      "mape": 413.049560546875
     },
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",
