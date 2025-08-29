@@ -237,7 +237,7 @@ def evaluate_trained_model(model, test_loader, config: Dict[str, Any]) -> Dict[s
     
     logger.info("Evaluation completed successfully")
     logger.info(f"Results saved to: {evaluation_results['results_path']}")
-    logger.info(f"Plots saved to: results/plots/")
+    logger.info("Plots saved to: results/plots/")
     
     return evaluation_results
 

@@ -10,7 +10,6 @@ This script examines real futures contract prices to verify:
 
 import pickle
 import pandas as pd
-from pathlib import Path
 from datetime import timedelta
 import logging
 
@@ -71,7 +70,7 @@ def check_ratio_example(contracts, dataset_name):
             sep_2025 = period
             
     if aug_2025 is None or sep_2025 is None:
-        print(f"Missing Aug-25 or Sep-25 contracts")
+        print("Missing Aug-25 or Sep-25 contracts")
         print(f"Aug-25: {aug_2025}, Sep-25: {sep_2025}")
         return
         
@@ -104,7 +103,7 @@ def check_ratio_example(contracts, dataset_name):
         
         # This ratio would be used to adjust Aug-25 contract
         # Aug-25 adjusted = Aug-25 original * ratio
-        print(f"If we adjust Aug-25 by this ratio:")
+        print("If we adjust Aug-25 by this ratio:")
         print(f"  Aug-25 adjusted price on {last_day_july}: {aug_price * ratio:.4f}")
         print(f"  Sep-25 reference price on {last_day_july}: {sep_price:.4f}")
         print(f"  Difference after adjustment: {abs(aug_price * ratio - sep_price):.8f}")
@@ -159,7 +158,7 @@ def check_multiple_rollover_examples(contracts, dataset_name):
             })
     
     # Show first 10 examples
-    print(f"Sample rollover ratios (newer/older):")
+    print("Sample rollover ratios (newer/older):")
     print("Date        | Older -> Newer | Older Price | Newer Price | Ratio")
     print("-" * 70)
     
@@ -172,7 +171,7 @@ def check_multiple_rollover_examples(contracts, dataset_name):
     # Statistics
     ratios = [ex['ratio'] for ex in examples]
     if ratios:
-        print(f"\nRatio Statistics:")
+        print("\nRatio Statistics:")
         print(f"  Count: {len(ratios)}")
         print(f"  Min: {min(ratios):.6f}")
         print(f"  Max: {max(ratios):.6f}")

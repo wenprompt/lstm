@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Tuple, Optional
 import logging
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ class IronOreLSTM(nn.Module):
         self.bidirectional = config["model"]["bidirectional"]  # True
         self.use_layer_norm = config["model"]["layer_norm"]  # True
         
-        logger.info(f"Initializing LSTM model:")
+        logger.info("Initializing LSTM model:")
         logger.info(f"  Input size: {self.input_size}")
         logger.info(f"  Hidden size: {self.hidden_size}")
         logger.info(f"  Number of layers: {self.num_layers}")
@@ -88,9 +89,9 @@ class IronOreLSTM(nn.Module):
         # Initialize weights using Xavier/Glorot initialization for better convergence
         self._init_weights()
         
-        logger.info(f"Model architecture:")
+        logger.info("Model architecture:")
         logger.info(f"  LSTM output size: {lstm_output_size}")
-        logger.info(f"  Final output: single prediction")
+        logger.info("  Final output: single prediction")
         
     def _init_weights(self) -> None:
         """
@@ -199,21 +200,22 @@ class IronOreLSTM(nn.Module):
             Shape: (num_layers * num_directions, batch_size, hidden_size)
         """
         num_directions = 2 if self.bidirectional else 1
-        
+        dtype = next(self.parameters()).dtype
+
         hidden = torch.zeros(
-            self.num_layers * num_directions, 
-            batch_size, 
+            self.num_layers * num_directions,
+            batch_size,
             self.hidden_size,
             device=device,
-            dtype=torch.float32
+            dtype=dtype,
         )
-        
+
         cell = torch.zeros(
             self.num_layers * num_directions,
-            batch_size, 
+            batch_size,
             self.hidden_size,
             device=device,
-            dtype=torch.float32
+            dtype=dtype,
         )
         
         return hidden, cell
@@ -230,28 +232,31 @@ def create_model(config: Dict[str, Any]) -> IronOreLSTM:
         Initialized IronOreLSTM model ready for training
     """
     logger.info("Creating LSTM model from configuration...")
-    
+
+    # Work on a copy to avoid mutating input config
+    model_config = copy.deepcopy(config)
+
     # Calculate dynamic input size based on selected features
-    selected_features = config.get("features", [])
+    selected_features = model_config.get("features", [])
     if selected_features:
         dynamic_input_size = len(selected_features)
-        config["model"]["input_size"] = dynamic_input_size
+        model_config["model"]["input_size"] = dynamic_input_size
         logger.info(f"Dynamic input size calculated: {dynamic_input_size} features")
     else:
         logger.warning("No features specified in config, using default input_size from config")
-    
-    model = IronOreLSTM(config)
+
+    model = IronOreLSTM(model_config)
     
     # Log model information
     model_info = model.get_model_info()
-    logger.info(f"Model created successfully:")
+    logger.info("Model created successfully:")
     logger.info(f"  Architecture: {model_info['architecture']}")
     logger.info(f"  Input features: {model_info['input_size']}")
     logger.info(f"  Total parameters: {model_info['total_parameters']:,}")
     logger.info(f"  Trainable parameters: {model_info['trainable_parameters']:,}")
     
     # Model complexity summary
-    thresholds = config.get("thresholds", {})
+    thresholds = model_config.get("thresholds", {})
     simple_threshold = thresholds.get("simple_model_params", 10000)
     moderate_threshold = thresholds.get("moderate_model_params", 100000)
     complexity = "SIMPLE" if model_info['total_parameters'] < simple_threshold else "MODERATE" if model_info['total_parameters'] < moderate_threshold else "COMPLEX"

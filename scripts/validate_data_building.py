@@ -24,8 +24,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Dict
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -141,7 +140,7 @@ class DataBuildingValidator:
                     parsed = pd.to_datetime(sample_date, format="%d/%m/%Y", dayfirst=True)
                     date_formats["group.csv"]["parse_success"] = True
                     date_formats["group.csv"]["parsed_sample"] = parsed
-                except:
+                except Exception:
                     date_formats["group.csv"]["parse_success"] = False
         
         # Check Raw_65and62_Index.csv (YYYY-MM-DD format)
@@ -157,7 +156,7 @@ class DataBuildingValidator:
                     parsed = pd.to_datetime(sample_date, format="%Y-%m-%d")
                     date_formats["index.csv"]["parse_success"] = True
                     date_formats["index.csv"]["parsed_sample"] = parsed
-                except:
+                except Exception:
                     date_formats["index.csv"]["parse_success"] = False
         
         # Check weekly files (DD/MM/YYYY format)
@@ -175,7 +174,7 @@ class DataBuildingValidator:
                         parsed = pd.to_datetime(sample_date, format="%d/%m/%Y", dayfirst=True, errors='coerce')
                         date_formats[file_name]["parse_success"] = not pd.isna(parsed)
                         date_formats[file_name]["parsed_sample"] = parsed
-                    except:
+                    except Exception:
                         date_formats[file_name]["parse_success"] = False
         
         # Log results
@@ -426,7 +425,7 @@ class DataBuildingValidator:
         }
         
         # Log results
-        logger.info(f"  ✅ Y calculation accuracy:")
+        logger.info("  ✅ Y calculation accuracy:")
         logger.info(f"     Valid Y values: {y_stats['valid_y_count']}/{y_stats['total_y_count']}")
         logger.info(f"     Correlation: {correlation:.6f}")
         logger.info(f"     Max difference: {max_difference:.6f}")

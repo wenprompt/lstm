@@ -15,10 +15,8 @@ Run this before training to ensure data processing is accurate.
 
 import yaml
 import pandas as pd
-import numpy as np
-import torch
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 import logging
 from src.data.data_loader import DataLoader
 from src.data.dataset import create_dataloaders, get_data_info
@@ -164,7 +162,7 @@ class DataProcessingValidator:
             logger.error("❌ Empty validation set detected!")
             raise ValueError("Validation set is empty - will cause MinMaxScaler errors")
             
-        logger.info(f"✅ Pipeline processed successfully:")
+        logger.info("✅ Pipeline processed successfully:")
         logger.info(f"   Train: {len(train_df)} samples")
         logger.info(f"   Val: {len(val_df)} samples") 
         logger.info(f"   Test: {len(test_df)} samples")
@@ -208,7 +206,7 @@ class DataProcessingValidator:
                 if not (0.0 <= ranges["min"] <= ranges["max"] <= 1.0):
                     logger.warning(f"⚠️ {dataset_name} features outside [0,1]: [{ranges['min']:.3f}, {ranges['max']:.3f}]")
         
-        logger.info(f"✅ Scaling validation complete")
+        logger.info("✅ Scaling validation complete")
         logger.info(f"   Train range: [{scaling_results['train_ranges']['min']:.3f}, {scaling_results['train_ranges']['max']:.3f}]")
         logger.info(f"   Val range: [{scaling_results['val_ranges']['min']:.3f}, {scaling_results['val_ranges']['max']:.3f}]")
         
@@ -250,7 +248,7 @@ class DataProcessingValidator:
         if actual_shape[2] != expected_features:
             logger.error(f"❌ Feature count mismatch: expected {expected_features}, got {actual_shape[2]}")
         
-        logger.info(f"✅ Sequence creation validated:")
+        logger.info("✅ Sequence creation validated:")
         logger.info(f"   Train batches: {train_info['num_batches']}")
         logger.info(f"   Val batches: {val_info['num_batches']}")
         logger.info(f"   Test batches: {test_info['num_batches']}")
@@ -282,7 +280,7 @@ class DataProcessingValidator:
             logger.error(f"❌ Input size mismatch: features={expected_input_size}, model={actual_input_size}")
             raise ValueError(f"Model input size {actual_input_size} doesn't match {expected_input_size} selected features")
             
-        logger.info(f"✅ Model compatibility validated:")
+        logger.info("✅ Model compatibility validated:")
         logger.info(f"   Input size: {actual_input_size} features")
         logger.info(f"   Total parameters: {model_info['total_parameters']:,}")
         logger.info(f"   Architecture: {model_info['architecture']}")

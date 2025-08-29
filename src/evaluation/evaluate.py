@@ -16,13 +16,12 @@ Based on verified scikit-learn metrics:
 import torch
 import torch.nn as nn
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import mean_squared_error, mean_absolute_error  # type: ignore
 from torch.utils.data import DataLoader
 from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple
 import logging
 import json
 from datetime import datetime
@@ -383,8 +382,11 @@ class ModelEvaluator:
         
         return str(plot_path)
     
-    def save_results(self, save_dir: Path = Path("results"), 
-                     additional_info: Dict[str, Any] = {}) -> str:
+    def save_results(
+        self,
+        save_dir: Path = Path("results"),
+        additional_info: Dict[str, Any] | None = None,
+    ) -> str:
         """
         Save evaluation results to JSON file.
         
@@ -420,7 +422,7 @@ class ModelEvaluator:
         }
         
         # Add additional information
-        results.update(additional_info)
+        results.update(additional_info or {})
         
         # Save to JSON file
         results_path = save_dir / "evaluation_results.json"

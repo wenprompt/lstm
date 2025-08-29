@@ -18,14 +18,27 @@ features:
   - "price_62_m1" # Continuous M+1 62% iron ore futures price
   - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
   - "lump premium" # Iron ore lump premium
-  - "IOCJ Import margin" # IOCJ import margin
+  # - "IOCJ Import margin" # IOCJ import margin
   - "rebar steel margin " # Rebar steel margin (note: trailing space in original data)
-  - "indian pellet premium" # Indian pellet premium
+  # - "indian pellet premium" # Indian pellet premium
   - "(IOCJ+SSF)/2-PBF" # Combined index calculation
   - "62 Index" # 62% grade index
   - "65 Index" # 65% grade index
-  - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
+  # - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
   - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
+# features:
+#   - "price_65_m1" # Continuous M+1 65% iron ore futures price
+#   - "price_62_m1" # Continuous M+1 62% iron ore futures price
+#   - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
+#   - "lump premium" # Iron ore lump premium
+#   - "IOCJ Import margin" # IOCJ import margin
+#   - "rebar steel margin " # Rebar steel margin (note: trailing space in original data)
+#   - "indian pellet premium" # Indian pellet premium
+#   - "(IOCJ+SSF)/2-PBF" # Combined index calculation
+#   - "62 Index" # 62% grade index
+#   - "65 Index" # 65% grade index
+#   - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
+#   - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
 
 # Model architecture hyperparameters
 model:

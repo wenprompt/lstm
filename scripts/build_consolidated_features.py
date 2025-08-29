@@ -15,8 +15,7 @@ with the target variable (65% M+1 DSP log returns).
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from datetime import datetime
-from typing import Dict, Optional
+from typing import Optional
 import logging
 
 logging.basicConfig(level=logging.INFO)

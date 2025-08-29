@@ -11,13 +11,10 @@
       "price_62_m1",
       "Ukraine Concentrate fines",
       "lump premium",
-      "IOCJ Import margin",
       "rebar steel margin ",
-      "indian pellet premium",
       "(IOCJ+SSF)/2-PBF",
       "62 Index",
       "65 Index",
-      "IOCJ Inventory",
       "IOCJ Weekly shipment"
     ],
     "model": {
@@ -77,21 +74,21 @@
     }
   },
   "training": {
-    "final_epoch": 32,
-    "total_time_minutes": 0.05490357478459676,
-    "best_val_loss": 1.318146973848343,
-    "final_train_loss": 4.039532757940746,
-    "final_val_loss": 3.3928414583206177,
+    "final_epoch": 19,
+    "total_time_minutes": 0.048712658882141116,
+    "best_val_loss": 1.5686910152435303,
+    "final_train_loss": 4.911318336214338,
+    "final_val_loss": 2.1628042459487915,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.3908128504371466,
-      "mae": 1.150180697441101,
-      "mse": 1.934360384941101,
+      "rmse": 1.1463248614676378,
+      "mae": 0.9188388586044312,
+      "mse": 1.3140606880187988,
       "directional_accuracy": 50.0,
-      "r_squared": -0.6830394268035889,
-      "mape": 413.049560546875
+      "r_squared": -0.1433318853378296,
+      "mape": 236.87762451171875
     },
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",

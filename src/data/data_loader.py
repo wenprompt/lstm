@@ -10,7 +10,6 @@ This module handles:
 """
 
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import MinMaxScaler  # type: ignore
 from pathlib import Path
 from typing import Tuple, Dict, Any
@@ -146,7 +145,7 @@ class DataLoader:
         val_filtered = val_df[columns_to_keep].copy()
         test_filtered = test_df[columns_to_keep].copy()
         
-        logger.info(f"Feature selection applied:")
+        logger.info("Feature selection applied:")
         logger.info(f"  Available features: {len(available_features)} ({available_features})")
         logger.info(f"  Selected features: {len(selected_features)} ({selected_features})")
         logger.info(f"  Filtered dataset shape: {train_filtered.shape[1]-1} features + Y target")

@@ -20,10 +20,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from pathlib import Path
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, List
 import logging
 import time
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +149,7 @@ class LSTMTrainer:
             'learning_rates': []
         }
         
-        logger.info(f"Trainer initialized:")
+        logger.info("Trainer initialized:")
         logger.info(f"  Device: {self.device}")
         logger.info(f"  Learning rate: {self.learning_rate}")
         logger.info(f"  Max epochs: {self.epochs}")
@@ -459,7 +458,7 @@ def load_model_checkpoint(model: nn.Module, checkpoint_path: str,
     # Load model state
     model.load_state_dict(checkpoint['model_state_dict'])
     
-    logger.info(f"Checkpoint loaded successfully:")
+    logger.info("Checkpoint loaded successfully:")
     logger.info(f"  Epoch: {checkpoint['epoch']}")
     logger.info(f"  Train Loss: {checkpoint['train_loss']:.6f}")
     logger.info(f"  Val Loss: {checkpoint['val_loss']:.6f}")
