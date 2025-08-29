@@ -1,0 +1,17 @@
+[project]
+name = "m65lstm"
+version = "0.1.0"
+description = "Iron Ore Log Return Forecasting with LSTM"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "torch",
+    "pyyaml",
+    "matplotlib",
+    "pydantic",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "jupyter"]
