@@ -65,6 +65,33 @@ This is a smarter version of MAPE that tries to fix the "divide-by-zero" problem
 
 > **Note:** This number is huge and looks scary, but you should **completely ignore it**. This metric breaks when the actual price change is very close to zero. Imagine the price barely changed (e.g., up 0.001%). Even a small prediction error (like 0.5%) will look like a gigantic percentage mistake. `SMAPE` is the reliable metric to use here.
 
+---
+
+## 🏆 The "Composite Score" (For Model Tuning)
+
+The "composite score" is a custom metric created for this project to provide a single, balanced measure of a model's overall performance during hyperparameter tuning.
+
+### Why is it needed?
+
+When comparing dozens of models, one model might have the best directional accuracy while another has the lowest error (RMSE). The composite score helps you choose the best _all-around_ model by combining several key metrics into one number.
+
+### How is it calculated?
+
+It's a weighted average of three normalized metrics, with the weights reflecting our project priorities:
+
+- **50% Directional Accuracy:** Guessing the correct price direction (up or down) is the most important factor.
+- **30% RMSE:** Having a low prediction error is the second most important factor.
+- **20% R-squared:** The model's ability to explain the price variance is also considered.
+
+Each metric is normalized to a 0-1 scale before being weighted, and the final score is also on a 0-1 scale (higher is better).
+
+### How do I use it?
+
+During hyperparameter tuning, the model with the **highest composite score** is considered the best and most balanced performer. The tuning script automatically uses this score to rank the models and recommend the best set of hyperparameters.
+
 **TO DOUBLE CHECK**
 
 - review @validate_data_building.py
+- @visualize_tuning.py and tune_hyperparameters.py are gg
+- hypertuning doesnt have early stopping i believe
+- why is my result for running main.py different from the result from hyperparameters tuning

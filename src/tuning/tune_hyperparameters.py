@@ -20,6 +20,7 @@ import copy
 from pathlib import Path
 from typing import Dict, Any, List, Iterator
 import sys
+import json
 
 # Import core components from the src directory
 from src.data.data_loader import DataLoader as IronOreDataLoader
@@ -33,7 +34,7 @@ from src.training.train import create_trainer
 # Add or remove values to expand or shrink the search
 SEARCH_SPACE = {
     "learning_rate": [0.001, 0.0005],
-    "gradient_clip_norm": [0.7, 0.5, 0.1],
+    "gradient_clip_norm": [0.5, 0.3, 0.1],
     "hidden_size": [64, 96, 128],
     "number_of_layers": [1, 2],
     "dropout_rate": [0.2, 0.35, 0.5],
@@ -62,9 +63,11 @@ logger = logging.getLogger(__name__)
 
 def generate_hyperparameter_combinations() -> Iterator[Dict[str, Any]]:
     """Generate all hyperparameter combinations from the search space."""
-    keys, values = zip(*SEARCH_SPACE.items())
+    if not SEARCH_SPACE:
+        raise ValueError("SEARCH_SPACE is empty; define at least one hyperparameter.")
+    keys, values = zip(*SEARCH_SPACE.items(), strict=True)
     for v in itertools.product(*values):
-        yield dict(zip(keys, v))
+        yield dict(zip(keys, v, strict=True))
 
 
 def update_config(
@@ -72,6 +75,11 @@ def update_config(
 ) -> Dict[str, Any]:
     """Update the base config with a new set of hyperparameters."""
     config = copy.deepcopy(base_config)
+
+    # Validate required nested sections
+    for section in ("training", "model"):
+        if section not in config or not isinstance(config[section], dict):
+            raise KeyError(f"Missing or invalid '{section}' section in base_config")
 
     # Update nested dictionary values
     if "learning_rate" in params:
@@ -91,7 +99,7 @@ def update_config(
     return config
 
 
-def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
+def run_trial(config: Dict[str, Any], test_y_actual: List[float]) -> Dict[str, Any]:
     """
     Run a single training and validation trial with comprehensive metric evaluation.
 
@@ -137,7 +145,7 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
             _, _, eval_loader = create_dataloaders(train_df, val_df, test_df, config)
 
         # Generate predictions on evaluation set
-        _, _ = evaluator.predict(eval_loader)
+        _, predictions = evaluator.predict(eval_loader)
         metrics = evaluator.calculate_metrics()
 
         # Return comprehensive metrics (use consistent naming regardless of eval set)
@@ -152,10 +160,12 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
             "final_epoch": training_results.get("final_epoch", 0),
             "training_time": training_results.get("training_time", 0.0),
             "eval_set_used": eval_set_name,  # Track which set was used for evaluation
+            "predictions": json.dumps(predictions.tolist()),  # Add predictions to results
+            "test_y_actual": json.dumps(test_y_actual),  # Add actual Y values to results
         }
 
         logger.info(
-            f"Trial completed - Train Loss: {trial_metrics['best_val_loss']:.4f} "
+            f"Trial completed - Best Val Loss: {trial_metrics['best_val_loss']:.4f} "
             f"({eval_set_name} eval), "
             f"Directional Acc: {trial_metrics['val_directional_accuracy']:.1f}%, "
             f"RMSE: {trial_metrics['val_rmse']:.4f}, R²: {trial_metrics['val_r_squared']:.3f}"
@@ -163,9 +173,8 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
 
         return trial_metrics
 
-    except Exception as e:
-        logger.error(f"Trial failed with error: {e}")
-        # Return dictionary with infinity/zero values for failed runs
+    except Exception:
+        logger.exception("Trial failed")
         return {
             "best_val_loss": float("inf"),
             "val_rmse": float("inf"),
@@ -177,6 +186,15 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
             "training_time": 0.0,
             "eval_set_used": "unknown",
         }
+    finally:
+        try:
+            # Best-effort cleanup between trials
+            del trainer, model
+            import torch as _torch  # local import to avoid top-level dependency
+            if _torch.cuda.is_available():
+                _torch.cuda.empty_cache()
+        except Exception:
+            logger.debug("Cleanup after trial failed; continuing.")
 
 
 # --- Main Execution ---
@@ -200,6 +218,14 @@ def main():
         logger.error(f"Error parsing base configuration file: {e}")
         return
 
+    # Load data once for all trials
+    data_loader = IronOreDataLoader(base_config)
+    _, _, test_df = data_loader.get_processed_data()
+    if test_df.empty:
+        logger.error("Test set is empty. Cannot perform tuning.")
+        return
+    test_y_actual = test_df['Y'].tolist() # Get actual Y values once
+
     # Generate all combinations
     param_combinations = list(generate_hyperparameter_combinations())
     total_trials = len(param_combinations)
@@ -218,8 +244,8 @@ def main():
         # Create a specific config for this trial
         trial_config = update_config(base_config, params)
 
-        # Run the trial
-        trial_metrics = run_trial(trial_config)
+        # Run the trial, passing the actual Y values
+        trial_metrics = run_trial(trial_config, test_y_actual)
         logger.info(f"TRIAL {i + 1}/{total_trials} COMPLETED.")
 
         # Record results

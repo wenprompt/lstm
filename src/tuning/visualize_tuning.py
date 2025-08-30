@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import logging
+import json
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -53,7 +54,7 @@ def create_dashboard1_best_model_recommendations(results_df):
         ax1.axis("off")
 
         config_text = f"""
-🏆 RECOMMENDED MODEL CONFIGURATION
+RECOMMENDED MODEL CONFIGURATION
 
 Learning Rate: {best_model["learning_rate"]:.4f}
 Hidden Size: {int(best_model["hidden_size"])}
@@ -253,7 +254,7 @@ def create_dashboard2_performance_rankings(results_df):
         y_pos = np.arange(len(top10))
 
         # Create gradient colors from green to red
-        colors = plt.cm.get_cmap('RdYlGn_r')(np.linspace(0.3, 0.9, len(top10)))
+        colors = plt.get_cmap('RdYlGn_r')(np.linspace(0.3, 0.9, len(top10)))
         bars = ax1.barh(
             y_pos,
             top10["composite_score"],
@@ -358,7 +359,7 @@ def create_dashboard2_performance_rankings(results_df):
 
         if unique_accuracies == 1:
             warning_text = f"""
-⚠️  VALIDATION SET ISSUE DETECTED
+VALIDATION SET ISSUE DETECTED
 
 All {len(results_df)} models have identical 
 directional accuracy: {results_df["val_directional_accuracy"].iloc[0]:.2f}%
@@ -388,7 +389,7 @@ Recommended: ~128 samples (3x larger)
             )
         else:
             success_text = f"""
-✅ VALIDATION SET WORKING PROPERLY
+VALIDATION SET WORKING PROPERLY
 
 Found {unique_accuracies} different directional 
 accuracy values across models.
@@ -530,17 +531,17 @@ def create_dashboard3_model_comparison_table(results_df):
         most_common_dr = dr_counts.index[0]
 
         insights_text = f"""
-📊 KEY INSIGHTS FROM TOP 15 MODELS:
+KEY INSIGHTS FROM TOP 15 MODELS:
 
-🏆 BEST MODEL: Learning Rate {best_model["learning_rate"]:.4f}, Hidden Size {int(best_model["hidden_size"])}, Dropout {best_model["dropout_rate"]:.2f}
+BEST MODEL: Learning Rate {best_model["learning_rate"]:.4f}, Hidden Size {int(best_model["hidden_size"])}, Dropout {best_model["dropout_rate"]:.2f}
 
-📈 PATTERNS IN TOP PERFORMERS:
+PATTERNS IN TOP PERFORMERS:
 • Most common Learning Rate: {most_common_lr:.4f} (appears {lr_counts.iloc[0]} times)
 • Most common Hidden Size: {int(most_common_hs)} (appears {hs_counts.iloc[0]} times)  
 • Most common Dropout: {most_common_dr:.2f} (appears {dr_counts.iloc[0]} times)
 • Most use {int(top15["number_of_layers"].mode()[0])} layer(s)
 
-💡 RECOMMENDATION: The patterns above represent the most successful hyperparameter combinations.
+RECOMMENDATION: The patterns above represent the most successful hyperparameter combinations.
         """
 
         ax2.text(
@@ -591,7 +592,7 @@ def create_dashboard4_final_recommendations(results_df):
         ax1.axis("off")
 
         config_update = f"""
-📝 UPDATE YOUR config.yaml WITH:
+UPDATE YOUR config.yaml WITH:
 
 model:
   sequence_length: 10  # Keep existing
@@ -629,7 +630,7 @@ splits:
         ax2.axis("off")
 
         performance_text = f"""
-🎯 EXPECTED PERFORMANCE WITH BEST MODEL:
+EXPECTED PERFORMANCE WITH BEST MODEL:
 
 Training Results:
 • Validation RMSE: {best_model["val_rmse"]:.4f}
@@ -661,19 +662,19 @@ Quality Assessment:
         ax3.axis("off")
 
         checklist_text = f"""
-✅ IMMEDIATE ACTION ITEMS:
+IMMEDIATE ACTION ITEMS:
 
-□ 1. Update config.yaml with recommended values (see left)
-□ 2. Re-run main training: `uv run python main.py`
-□ 3. Compare results with previous runs
-□ 4. Save best_model.pt for production use
+- 1. Update config.yaml with recommended values (see left)
+- 2. Re-run main training: `uv run python main.py`
+- 3. Compare results with previous runs
+- 4. Save best_model.pt for production use
 
-□ 5. OPTIONAL - Further Optimization:
+- 5. OPTIONAL - Further Optimization:
     • Try learning rates around {best_model["learning_rate"]:.4f} (±20%)
     • Test hidden sizes {int(best_model["hidden_size"] * 0.8)}-{int(best_model["hidden_size"] * 1.2)}
     • Experiment with dropout {best_model["dropout_rate"] - 0.1:.1f}-{best_model["dropout_rate"] + 0.1:.1f}
 
-□ 6. Validation:
+- 6. Validation:
     • Run on test set to confirm performance
     • Check for overfitting signs
     • Monitor directional accuracy closely
@@ -694,7 +695,7 @@ Quality Assessment:
         ax4.axis("off")
 
         success_text = f"""
-🏆 SUCCESS CRITERIA FOR FINAL MODEL:
+SUCCESS CRITERIA FOR FINAL MODEL:
 
 Target Metrics:
 • Directional Accuracy: ≥ 55% (Currently: {best_model["val_directional_accuracy"]:.1f}%)
@@ -702,11 +703,11 @@ Target Metrics:
 • R²: ≥ 0.0 (Currently: {best_model["val_r_squared"]:.3f})
 
 Status:
-• Direction: {"✅ PASS" if best_model["val_directional_accuracy"] >= 55 else "❌ NEEDS WORK"}
-• Error: {"✅ PASS" if best_model["val_rmse"] <= 2.0 else "❌ NEEDS WORK"}
-• Fit: {"✅ PASS" if best_model["val_r_squared"] >= 0 else "❌ NEEDS WORK"}
+• Direction: {"PASS" if best_model["val_directional_accuracy"] >= 55 else "NEEDS WORK"}
+• Error: {"PASS" if best_model["val_rmse"] <= 2.0 else "NEEDS WORK"}
+• Fit: {"PASS" if best_model["val_r_squared"] >= 0 else "NEEDS WORK"}
 
-Overall: {"✅ READY FOR PRODUCTION" if all([best_model["val_directional_accuracy"] >= 55, best_model["val_rmse"] <= 2.0, best_model["val_r_squared"] >= 0]) else "⚠️  NEEDS IMPROVEMENT"}
+Overall: {"READY FOR PRODUCTION" if all([best_model["val_directional_accuracy"] >= 55, best_model["val_rmse"] <= 2.0, best_model["val_r_squared"] >= 0]) else "NEEDS IMPROVEMENT"}
 
 Next Steps After Success:
 • Deploy for iron ore price forecasting
@@ -737,12 +738,76 @@ Next Steps After Success:
     except Exception as e:
         logger.error(f"  ❌ Could not generate Dashboard 4: {e}")
 
+def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
+    """
+    Dashboard 5: Time Series Comparison of Top 5 Models (5 charts in 1 image).
 
-def main():
+    Args:
+        results_df: DataFrame with tuning results.
+    """
+    try:
+        logger.info("Creating Dashboard 5: Time Series Comparison (5 charts in 1 image)...")
+
+        # Ensure predictions and actual Y values are available in the DataFrame
+        if "predictions" not in results_df.columns or "test_y_actual" not in results_df.columns:
+            logger.error("'predictions' or 'test_y_actual' columns not found in tuning_results.csv. Please re-run tune_hyperparameters.py.")
+            return
+
+        # Get the actual Y values from the first row (they should be identical across all trials)
+        # Convert string representation of list to actual list
+        y_test = np.array(json.loads(results_df["test_y_actual"].iloc[0]))
+
+        # Identify top 5 models
+        top5_models = results_df.nlargest(5, "composite_score")
+
+        # Create a single figure with 5 subplots (e.g., 3 rows, 2 columns)
+        fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20, 18))
+        axes = axes.flatten() # Flatten the 2D array of axes for easy iteration
+
+        fig.suptitle("Dashboard 5: Time Series Comparison - Top 5 Models vs. Actual Y", fontsize=24, fontweight='bold', y=1.02)
+
+        for i, (index, row) in enumerate(top5_models.iterrows()):
+            ax = axes[i] # Get the current subplot axis
+            model_rank = i + 1
+            
+            # Convert string representation of list to actual list
+            predictions = np.array(json.loads(row["predictions"]))
+            
+            if len(predictions) == 0:
+                logger.warning(f"No predictions found for trial {row.name}. Skipping model #{model_rank}.")
+                continue
+
+            model_label = f"Model #{model_rank} (LR={row['learning_rate']:.4f}, H={int(row['hidden_size'])}, Acc={row['val_directional_accuracy']:.1f}%, RMSE={row['val_rmse']:.4f})"
+
+            ax.plot(y_test, label="Actual Returns", color='black', linewidth=2, alpha=0.8)
+            ax.plot(predictions, label="Predicted Returns", linestyle='--', color='red', alpha=0.7)
+
+            ax.set_title(model_label, fontsize=14, fontweight='bold')
+            ax.set_xlabel("Test Set Time Step", fontsize=10)
+            ax.set_ylabel("Log Return (%)", fontsize=10)
+            ax.legend(fontsize=9)
+            ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+            ax.axhline(0, color='grey', linestyle='-', linewidth=1)
+
+        # Hide any unused subplots (if ncols * nrows > number of models)
+        for j in range(len(top5_models), len(axes)):
+            fig.delaxes(axes[j])
+
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.95) # Adjust top to make space for suptitle
+
+        output_path = PLOTS_DIR / "dashboard5_timeseries_comparison.png"
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.close()
+
+        logger.info(f"  ✅ Dashboard 5 saved to {output_path}")
+
+    except Exception as e:
+        logger.exception(f"  ❌ Could not generate Dashboard 5: {e}")
     """
     Main function to create all improved visualization dashboards.
     """
-    logger.info("🚀 Starting IMPROVED hyperparameter tuning visualization script...")
+    logger.info("Starting IMPROVED hyperparameter tuning visualization script...")
 
     # Ensure plots directory exists
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -773,12 +838,18 @@ def main():
     create_dashboard2_performance_rankings(results_df)
     create_dashboard3_model_comparison_table(results_df)
     create_dashboard4_final_recommendations(results_df)
+    create_dashboard5_timeseries_comparison(results_df)
 
     logger.info(
-        "🎉 IMPROVED visualization script finished! Generated 4 actionable dashboards in results/plots/hypertuning/"
+        "IMPROVED visualization script finished! Generated 5 actionable dashboards in results/plots/hypertuning/"
     )
     logger.info("")
-    logger.info("📋 NEXT STEPS:")
+    logger.info("NEXT STEPS:")
+    logger.info("1. Review Dashboard 4 for config.yaml updates")
+    logger.info("2. Update your config.yaml with recommended hyperparameters")
+    logger.info("3. Re-run training: uv run python main.py")
+    logger.info("")
+    logger.info("NEXT STEPS:")
     logger.info("1. Review Dashboard 4 for config.yaml updates")
     logger.info("2. Update your config.yaml with recommended hyperparameters")
     logger.info("3. Re-run training: uv run python main.py")

@@ -86,22 +86,24 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
         logger.info(f"    Sequence length: {config['model']['sequence_length']}")
         logger.info(f"    Bidirectional: {config['model']['bidirectional']}")
         logger.info(f"    Dropout rate: {config['model']['dropout_rate']}")
-        
+
         logger.info("  Training Parameters:")
         logger.info(f"    Max epochs: {config['training']['epochs']}")
         logger.info(f"    Batch size: {config['training']['batch_size']}")
         logger.info(f"    Learning rate: {config['training']['learning_rate']}")
-        logger.info(f"    Early stopping patience: {config['training']['early_stopping_patience']}")
-        
+        logger.info(
+            f"    Early stopping patience: {config['training']['early_stopping_patience']}"
+        )
+
         logger.info("  Data Configuration:")
         logger.info(f"    Train ratio: {config['splits']['train_ratio']}")
         logger.info(f"    Val ratio: {config['splits']['val_ratio']}")
         logger.info(f"    Test ratio: {config['splits']['test_ratio']}")
-        
+
         # Feature selection logging
-        feature_count = len(config.get('features', []))
+        feature_count = len(config.get("features", []))
         logger.info(f"    Selected features: {feature_count}")
-        
+
         return config
 
     except yaml.YAMLError as e:
@@ -112,7 +114,7 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
 def setup_directories() -> Path:
     """
     Create necessary directories for results and logs with enhanced logging.
-    
+
     Returns:
         Path to results directory
     """
@@ -126,18 +128,18 @@ def setup_directories() -> Path:
     main_subdirs = ["models", "plots"]
     for subdir in main_subdirs:
         (results_dir / subdir).mkdir(exist_ok=True)
-    
+
     # Create logs structure with subdirectories
     logs_dir = results_dir / "logs"
     logs_dir.mkdir(exist_ok=True)
     log_subdirs = ["training", "evaluation", "hypertuning"]
     for log_subdir in log_subdirs:
         (logs_dir / log_subdir).mkdir(exist_ok=True)
-        
+
     # Check disk space
     disk_usage = psutil.disk_usage(str(results_dir))
     free_gb = disk_usage.free / (1024**3)
-    
+
     logger.info("Output directories structure:")
     logger.info(f"  Base directory: {results_dir.absolute()}")
     for subdir in main_subdirs:
@@ -147,11 +149,13 @@ def setup_directories() -> Path:
     for log_subdir in log_subdirs:
         log_subdir_path = logs_dir / log_subdir
         logger.info(f"      logs/{log_subdir}/: {log_subdir_path.absolute()}")
-        
+
     logger.info(f"Disk space available: {free_gb:.1f} GB")
     if free_gb < 1.0:
-        logger.warning("Low disk space detected! Consider freeing up space before training.")
-        
+        logger.warning(
+            "Low disk space detected! Consider freeing up space before training."
+        )
+
     return results_dir
 
 
@@ -217,16 +221,16 @@ def create_datasets(train_df, val_df, test_df, config: Dict[str, Any]) -> tuple:
         f"  Train: {train_info['num_batches']} batches, "
         f"feature shape: {train_info['feature_shape']}"
     )
-    
+
     # Handle empty validation dataloader (when val_ratio=0)
-    if val_info['feature_shape'] is not None:
+    if val_info["feature_shape"] is not None:
         logger.info(
             f"  Val: {val_info['num_batches']} batches, "
             f"feature shape: {val_info['feature_shape']}"
         )
     else:
         logger.info("  Val: 0 batches (validation disabled)")
-    
+
     logger.info(
         f"  Test: {test_info['num_batches']} batches, "
         f"feature shape: {test_info['feature_shape']}"
@@ -362,7 +366,17 @@ def save_final_results(
     logger.info("=" * 60)
     logger.info("PIPELINE EXECUTION COMPLETED SUCCESSFULLY")
     logger.info("=" * 60)
-    logger.info(f"Best validation loss: {training_results['best_val_loss']:.6f}")
+    
+    # Check if validation was enabled by comparing val_ratio
+    val_ratio = config.get("splits", {}).get("val_ratio", 0.0)
+    has_validation = val_ratio > 0.0
+    
+    # Log validation results appropriately
+    if has_validation:
+        logger.info(f"Best validation loss: {training_results['best_val_loss']:.6f}")
+    else:
+        logger.info(f"Best train loss: {training_results['best_val_loss']:.6f} (no validation)")
+    
     logger.info(f"Test RMSE: {evaluation_results['metrics']['rmse']:.6f}")
     logger.info(f"Test MAE: {evaluation_results['metrics']['mae']:.6f}")
     logger.info(
@@ -403,26 +417,28 @@ def log_system_information() -> None:
     logger.info("=" * 80)
     logger.info("LSTM IRON ORE PRICE FORECASTING PIPELINE")
     logger.info("=" * 80)
-    
+
     # System information
     logger.info("System Information:")
     logger.info(f"  Platform: {platform.platform()}")
     logger.info(f"  Python version: {platform.python_version()}")
     logger.info(f"  PyTorch version: {torch.__version__}")
-    
+
     # Hardware information
     logger.info("Hardware Information:")
-    logger.info(f"  CPU: {psutil.cpu_count(logical=False)} cores ({psutil.cpu_count()} logical)")
+    logger.info(
+        f"  CPU: {psutil.cpu_count(logical=False)} cores ({psutil.cpu_count()} logical)"
+    )
     logger.info(f"  RAM: {psutil.virtual_memory().total / (1024**3):.1f} GB")
-    
+
     if torch.cuda.is_available():
         logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
         gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        logger.info(f"  GPU Memory: {gpu_memory:.1f} GB")
-        logger.info(f"  CUDA Version: {torch.version.cuda}")
+        logger.info(f"  GPU Memory: {gpu_memory:.1f} GB")  # type: ignore
+        logger.info(f"  CUDA Version: {torch.version.cuda}")  # type: ignore
     else:
         logger.info("  GPU: None available (using CPU)")
-        
+
     # Timestamp
     logger.info(f"  Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 80 + "\n")
@@ -433,10 +449,10 @@ def main() -> None:
     Main execution function for the LSTM forecasting pipeline with enhanced logging.
     """
     start_time = time.time()
-    
+
     # Log system information
     log_system_information()
-    
+
     try:
         # Load configuration
         step_start = time.time()
@@ -454,7 +470,9 @@ def main() -> None:
         step_start = time.time()
         train_df, val_df, test_df = load_and_preprocess_data(config)
         step_time = time.time() - step_start
-        logger.info(f"\n⏱️  Step 1 (Data Loading & Preprocessing) completed in {step_time:.1f} seconds\n")
+        logger.info(
+            f"\n⏱️  Step 1 (Data Loading & Preprocessing) completed in {step_time:.1f} seconds\n"
+        )
 
         # Step 2: Create PyTorch datasets
         step_start = time.time()
@@ -462,7 +480,9 @@ def main() -> None:
             train_df, val_df, test_df, config
         )
         step_time = time.time() - step_start
-        logger.info(f"\n⏱️  Step 2 (Dataset Creation) completed in {step_time:.1f} seconds\n")
+        logger.info(
+            f"\n⏱️  Step 2 (Dataset Creation) completed in {step_time:.1f} seconds\n"
+        )
 
         # Step 3: Create and train model
         step_start = time.time()
@@ -470,48 +490,58 @@ def main() -> None:
             train_loader, val_loader, config
         )
         step_time = time.time() - step_start
-        logger.info(f"\n⏱️  Step 3 (Model Training) completed in {step_time:.1f} seconds\n")
+        logger.info(
+            f"\n⏱️  Step 3 (Model Training) completed in {step_time:.1f} seconds\n"
+        )
 
         # Step 4: Evaluate model
         step_start = time.time()
         evaluation_results = evaluate_trained_model(model, test_loader, config)
         step_time = time.time() - step_start
-        logger.info(f"\n⏱️  Step 4 (Model Evaluation) completed in {step_time:.1f} seconds\n")
+        logger.info(
+            f"\n⏱️  Step 4 (Model Evaluation) completed in {step_time:.1f} seconds\n"
+        )
 
         # Step 5: Save final results
         step_start = time.time()
         save_final_results(training_results, evaluation_results, config)
         step_time = time.time() - step_start
-        logger.info(f"\n⏱️  Step 5 (Results Saving) completed in {step_time:.1f} seconds\n")
+        logger.info(
+            f"\n⏱️  Step 5 (Results Saving) completed in {step_time:.1f} seconds\n"
+        )
 
         # Calculate total pipeline time and efficiency metrics
         total_time = time.time() - start_time
-        
+
         # Final pipeline summary with enhanced metrics
         logger.info("=" * 80)
         logger.info("ENHANCED PIPELINE EXECUTION SUMMARY")
         logger.info("=" * 80)
-        logger.info(f"Total execution time: {total_time:.1f} seconds ({total_time/60:.1f} minutes)")
-        
+        logger.info(
+            f"Total execution time: {total_time:.1f} seconds ({total_time/60:.1f} minutes)"
+        )
+
         # Performance breakdown
-        training_time = training_results.get('total_time', 0)
+        training_time = training_results.get("total_time", 0)
         training_pct = (training_time / total_time) * 100 if total_time > 0 else 0
-        logger.info(f"Training time: {training_time/60:.1f} min ({training_pct:.1f}% of total)")
-        
+        logger.info(
+            f"Training time: {training_time/60:.1f} min ({training_pct:.1f}% of total)"
+        )
+
         # Resource utilization summary
         if torch.cuda.is_available():
             peak_gpu_memory = torch.cuda.max_memory_allocated(0) / (1024**3)
             logger.info(f"Peak GPU memory usage: {peak_gpu_memory:.2f} GB")
-        
+
         logger.info(f"Results saved to: {results_dir.absolute()}")
         logger.info("=" * 80)
         logger.info("✅ LSTM IRON ORE FORECASTING PIPELINE COMPLETED SUCCESSFULLY!")
         logger.info("=" * 80)
-        
+
         # Memory cleanup
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-            
+
     except Exception as e:
         total_time = time.time() - start_time
         logger.error("=" * 80)

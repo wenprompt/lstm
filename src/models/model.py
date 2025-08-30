@@ -14,7 +14,7 @@ Based on verified PyTorch documentation from /pytorch/pytorch.
 import torch
 import torch.nn as nn
 from typing import Dict, Any, Tuple, Optional
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torch.nn.utils.rnn import pack_padded_sequence
 import logging
 import copy
 

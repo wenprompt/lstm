@@ -557,9 +557,16 @@ class LSTMTrainer:
         logger.info("Training completed!")
         logger.info(f"Total epochs: {final_epoch}")
         logger.info(f"Total time: {total_time / 60:.2f} minutes")
-        logger.info(f"Best validation loss: {best_val_loss:.6f}")
+        
+        # Fixed validation logging to show N/A when validation is disabled
+        if has_validation:
+            logger.info(f"Best validation loss: {best_val_loss:.6f}")
+            logger.info(f"Final val loss: {val_loss:.6f}")
+        else:
+            logger.info(f"Best train loss: {best_val_loss:.6f} (no validation)")
+            logger.info("Final val loss: N/A (validation disabled)")
+        
         logger.info(f"Final train loss: {train_loss:.6f}")
-        logger.info(f"Final val loss: {val_loss:.6f}")
 
         # Comprehensive training completion analysis
         early_stopped_msg = (
@@ -651,15 +658,28 @@ class LSTMTrainer:
         best_val_loss = min(self.history["val_loss"])
         best_epoch = self.history["val_loss"].index(best_val_loss) + 1
         total_time = sum(self.history["epoch_times"])
+        
+        # Check if validation was enabled (all val_loss should be different from train_loss if validation was used)
+        has_validation = not all(
+            abs(train - val) < 1e-10 
+            for train, val in zip(self.history["train_loss"], self.history["val_loss"])
+        )
+
+        if has_validation:
+            val_loss_display = f"{best_val_loss:.6f} (Epoch {best_epoch})"
+            final_val_loss_display = f"{self.history['val_loss'][-1]:.6f}"
+        else:
+            val_loss_display = "N/A (validation disabled)"
+            final_val_loss_display = "N/A (validation disabled)"
 
         summary = f"""
 {"=" * 50}
 LSTM TRAINING SUMMARY
 {"=" * 50}
 Total Epochs: {final_epoch}
-Best Val Loss: {best_val_loss:.6f} (Epoch {best_epoch})
+Best Val Loss: {val_loss_display}
 Final Train Loss: {self.history["train_loss"][-1]:.6f}
-Final Val Loss: {self.history["val_loss"][-1]:.6f}
+Final Val Loss: {final_val_loss_display}
 Training Time: {total_time / 60:.2f} minutes
 Avg Time/Epoch: {total_time / final_epoch:.2f} seconds
 Early Stopped: {self.early_stopping.early_stop}
