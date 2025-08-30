@@ -284,9 +284,7 @@ class ConsolidatedFeaturesBuilder:
         # Print concise summary
         print(f"\n✅ Dataset saved: {df.shape[0]} observations × {df.shape[1]} columns")
         print(f"📁 Files: {csv_path.name} & {pkl_path.name}")
-        print(
-            f"🎯 Y values: {df['Y'].notna().sum()} valid (last row = NaN as expected)"
-        )
+        print(f"🎯 Y values: {df['Y'].notna().sum()} valid")
 
 
 def main():

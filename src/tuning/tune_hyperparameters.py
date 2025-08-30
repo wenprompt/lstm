@@ -9,7 +9,7 @@ and records the best validation loss.
 The results are saved to a CSV file for later analysis.
 
 Usage:
-    uv run python scripts/tune_hyperparameters.py
+    uv run python -m src.tuning.tune_hyperparameters
 """
 
 import yaml
@@ -131,7 +131,7 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
         # Use validation set if available, otherwise use test set for evaluation
         has_validation = len(val_loader.dataset) > 0  # type: ignore
         eval_loader = val_loader if has_validation else _  # test_loader from line 110
-        
+
         # We need to recreate test_loader since we used _ above
         if not has_validation:
             _, _, eval_loader = create_dataloaders(train_df, val_df, test_df, config)

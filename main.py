@@ -135,7 +135,7 @@ def setup_directories() -> Path:
         (logs_dir / log_subdir).mkdir(exist_ok=True)
         
     # Check disk space
-    disk_usage = psutil.disk_usage(results_dir)
+    disk_usage = psutil.disk_usage(str(results_dir))
     free_gb = disk_usage.free / (1024**3)
     
     logger.info("Output directories structure:")

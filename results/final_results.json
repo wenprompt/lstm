@@ -18,7 +18,7 @@
       "IOCJ Weekly shipment"
     ],
     "model": {
-      "sequence_length": 15,
+      "sequence_length": 12,
       "hidden_size": 96,
       "number_of_layers": 2,
       "dropout_rate": 0.2,
@@ -74,22 +74,22 @@
     }
   },
   "training": {
-    "final_epoch": 29,
-    "total_time_minutes": 0.045715049902598066,
-    "best_val_loss": 4.037616285410794,
-    "final_train_loss": 4.063416838645935,
-    "final_val_loss": 4.063416838645935,
+    "final_epoch": 43,
+    "total_time_minutes": 0.08830532232920328,
+    "best_val_loss": 3.9677208228544756,
+    "final_train_loss": 4.081553350795399,
+    "final_val_loss": 4.081553350795399,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.087621193194657,
-      "mae": 0.867990255355835,
-      "mse": 1.1829198598861694,
-      "directional_accuracy": 47.16981132075472,
-      "r_squared": -0.026317477226257324,
-      "mape": 162519.421875,
-      "smape": 165.0968780517578
+      "rmse": 1.1988347833621913,
+      "mae": 0.9746584296226501,
+      "mse": 1.4372048377990723,
+      "directional_accuracy": 50.617283950617285,
+      "r_squared": -0.23623085021972656,
+      "mape": 466478.75,
+      "smape": 139.7393798828125
     },
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",

@@ -62,7 +62,9 @@ class DataLoader:
                 f"Expected {expected_cols} columns, got {self.data.shape[1]}"
             )
 
-        # Check for missing Y values (should be none after preprocessing)
+        # Verify Y target column exists and check for missing values
+        if "Y" not in self.data.columns:
+            raise KeyError("Target column 'Y' not found in consolidated dataset")
         missing_y = self.data["Y"].isnull().sum()
         if missing_y > 0:
             logger.warning(f"Found {missing_y} missing Y values")

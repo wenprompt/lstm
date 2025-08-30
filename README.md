@@ -6,14 +6,14 @@ This document breaks down the performance of the forecasting model based on the 
 
 ## 📊 Key Metrics Summary
 
-| Metric                 | Value         | Quick Interpretation                               |
-| ---------------------- | ------------- | -------------------------------------------------- |
-| `RMSE`                 | 1.14          | Typical error is 1.14 percentage points.           |
-| `MAE`                  | 0.91          | Average error is 0.91 percentage points.           |
-| `Directional Accuracy` | 50.0%         | 🔴 **No better than a coin flip.**                 |
-| `R-squared (R²)`       | -0.13         | 🔴 **Worse than a naive "average" model.**         |
-| `SMAPE`                | 139.3%        | Very high percentage error.                        |
-| `MAPE`                 | 351,298%      | (Ignore - distorted value)                         |
+| Metric                 | Value    | Quick Interpretation                       |
+| ---------------------- | -------- | ------------------------------------------ |
+| `RMSE`                 | 1.14     | Typical error is 1.14 percentage points.   |
+| `MAE`                  | 0.91     | Average error is 0.91 percentage points.   |
+| `Directional Accuracy` | 50.0%    | 🔴 **No better than a coin flip.**         |
+| `R-squared (R²)`       | -0.13    | 🔴 **Worse than a naive "average" model.** |
+| `SMAPE`                | 139.3%   | Very high percentage error.                |
+| `MAPE`                 | 351,298% | (Ignore - distorted value)                 |
 
 ---
 
@@ -64,3 +64,7 @@ This is a smarter version of MAPE that tries to fix the "divide-by-zero" problem
 #### `MAPE`: 351,298%
 
 > **Note:** This number is huge and looks scary, but you should **completely ignore it**. This metric breaks when the actual price change is very close to zero. Imagine the price barely changed (e.g., up 0.001%). Even a small prediction error (like 0.5%) will look like a gigantic percentage mistake. `SMAPE` is the reliable metric to use here.
+
+**TO DOUBLE CHECK**
+
+- review @validate_data_building.py

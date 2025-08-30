@@ -136,9 +136,7 @@ class LSTMTrainer:
         self.learning_rate = config["training"]["learning_rate"]  # 0.001
         self.epochs = config["training"]["epochs"]  # 200
         self.gradient_clip_norm = config["training"]["gradient_clip_norm"]  # 1.0
-        self.early_stopping_patience = config["training"][
-            "early_stopping_patience"
-        ]  # 15
+        self.early_stopping_patience = config["training"]["early_stopping_patience"]
 
         # Device configuration
         self.device = torch.device(
@@ -176,18 +174,22 @@ class LSTMTrainer:
             cpu_count = psutil.cpu_count(logical=False)
             ram_gb = psutil.virtual_memory().total / 1024**3
             logger.info(f"  CPU: {cpu_count} cores, RAM: {ram_gb:.1f}GB")
-            
+
         logger.info("Trainer initialized:")
         logger.info(f"  Device: {self.device}")
         logger.info(f"  Learning rate: {self.learning_rate}")
         logger.info(f"  Max epochs: {self.epochs}")
         logger.info(f"  Gradient clip norm: {self.gradient_clip_norm}")
         logger.info(f"  Early stopping patience: {self.early_stopping_patience}")
-        
+
         # Model parameter count logging
         total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-        logger.info(f"  Model parameters: {total_params:,} total, {trainable_params:,} trainable")
+        trainable_params = sum(
+            p.numel() for p in self.model.parameters() if p.requires_grad
+        )
+        logger.info(
+            f"  Model parameters: {total_params:,} total, {trainable_params:,} trainable"
+        )
 
     def train_epoch(self, train_loader: DataLoader) -> float:
         """
@@ -252,27 +254,33 @@ class LSTMTrainer:
                 )
 
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
-        
+
         # Log detailed training statistics
         if batch_losses:
             min_loss = min(batch_losses)
             max_loss = max(batch_losses)
-            avg_grad_norm = sum(gradient_norms) / len(gradient_norms) if gradient_norms else 0.0
+            avg_grad_norm = (
+                sum(gradient_norms) / len(gradient_norms) if gradient_norms else 0.0
+            )
             max_grad_norm = max(gradient_norms) if gradient_norms else 0.0
-            
+
             logger.info("    Training epoch stats:")
             logger.info(f"      Loss range: {min_loss:.6f} to {max_loss:.6f}")
-            logger.info(f"      Gradient norms: avg={avg_grad_norm:.4f}, max={max_grad_norm:.4f}")
-            
+            logger.info(
+                f"      Gradient norms: avg={avg_grad_norm:.4f}, max={max_grad_norm:.4f}"
+            )
+
             # Memory usage logging
             if torch.cuda.is_available():
                 gpu_memory_used = torch.cuda.memory_allocated(0) / 1024**3
                 gpu_memory_cached = torch.cuda.memory_reserved(0) / 1024**3
-                logger.info(f"      GPU memory: {gpu_memory_used:.2f}GB used, {gpu_memory_cached:.2f}GB cached")
+                logger.info(
+                    f"      GPU memory: {gpu_memory_used:.2f}GB used, {gpu_memory_cached:.2f}GB cached"
+                )
             else:
                 ram_usage = psutil.virtual_memory().percent
                 logger.info(f"      RAM usage: {ram_usage:.1f}%")
-        
+
         return avg_loss
 
     def validate_epoch(self, val_loader: DataLoader) -> float:
@@ -310,17 +318,21 @@ class LSTMTrainer:
                 # Calculate loss
                 loss = self.criterion(predictions, targets)
                 batch_loss = loss.item()
-                
+
                 # Collect prediction statistics
                 with torch.no_grad():
                     pred_mean = predictions.mean().item()
-                    pred_std = predictions.std().item() if predictions.numel() > 1 else 0.0
+                    pred_std = (
+                        predictions.std().item() if predictions.numel() > 1 else 0.0
+                    )
                     target_mean = targets.mean().item()
-                    predictions_stats.append({
-                        'pred_mean': pred_mean,
-                        'pred_std': pred_std, 
-                        'target_mean': target_mean
-                    })
+                    predictions_stats.append(
+                        {
+                            "pred_mean": pred_mean,
+                            "pred_std": pred_std,
+                            "target_mean": target_mean,
+                        }
+                    )
 
                 # Accumulate loss
                 total_loss += batch_loss
@@ -334,25 +346,31 @@ class LSTMTrainer:
                     )
 
         avg_loss = total_loss / num_batches if num_batches > 0 else 0.0
-        
+
         # Log detailed validation statistics
         if batch_losses and predictions_stats:
             min_loss = min(batch_losses)
             max_loss = max(batch_losses)
-            
+
             # Prediction statistics across all batches
-            all_pred_means = [s['pred_mean'] for s in predictions_stats]
-            all_target_means = [s['target_mean'] for s in predictions_stats]
+            all_pred_means = [s["pred_mean"] for s in predictions_stats]
+            all_target_means = [s["target_mean"] for s in predictions_stats]
             avg_pred_mean = sum(all_pred_means) / len(all_pred_means)
             avg_target_mean = sum(all_target_means) / len(all_target_means)
-            
-            logger.info(f"    Validation completed: {num_batches} batches, avg loss: {avg_loss:.6f}")
+
+            logger.info(
+                f"    Validation completed: {num_batches} batches, avg loss: {avg_loss:.6f}"
+            )
             logger.info("    Validation stats:")
             logger.info(f"      Loss range: {min_loss:.6f} to {max_loss:.6f}")
-            logger.info(f"      Predictions avg: {avg_pred_mean:.6f}, targets avg: {avg_target_mean:.6f}")
+            logger.info(
+                f"      Predictions avg: {avg_pred_mean:.6f}, targets avg: {avg_target_mean:.6f}"
+            )
         else:
-            logger.info(f"    Validation completed: {num_batches} batches, avg loss: {avg_loss:.6f}")
-            
+            logger.info(
+                f"    Validation completed: {num_batches} batches, avg loss: {avg_loss:.6f}"
+            )
+
         return avg_loss
 
     def train(
@@ -430,16 +448,18 @@ class LSTMTrainer:
             # Calculate training progress statistics
             progress_percent = ((epoch + 1) / self.epochs) * 100
             epochs_remaining = self.epochs - (epoch + 1)
-            
+
             # Loss trend analysis (if we have history)
-            if len(self.history['train_loss']) >= 2:
-                train_trend = train_loss - self.history['train_loss'][-2]
+            if len(self.history["train_loss"]) >= 2:
+                train_trend = train_loss - self.history["train_loss"][-2]
                 train_trend_str = f"({train_trend:+.6f})"
             else:
                 train_trend_str = "(first epoch)"
-                
+
             # Log comprehensive epoch results
-            logger.info(f"Epoch {epoch + 1}/{self.epochs} Complete [{progress_percent:.1f}% progress]:")
+            logger.info(
+                f"Epoch {epoch + 1}/{self.epochs} Complete [{progress_percent:.1f}% progress]:"
+            )
             logger.info(f"  Train Loss: {train_loss:.6f} {train_trend_str}")
             if has_validation:
                 logger.info(f"  Val Loss:   {val_loss:.6f} ({improvement})")
@@ -447,9 +467,11 @@ class LSTMTrainer:
             else:
                 logger.info("  Val Loss:   N/A (validation disabled)")
                 logger.info("  Best Val:   N/A (validation disabled)")
-            logger.info(f"  Time:       {epoch_time:.2f}s (est. {epochs_remaining * epoch_time:.0f}s remaining)")
+            logger.info(
+                f"  Time:       {epoch_time:.2f}s (est. {epochs_remaining * epoch_time:.0f}s remaining)"
+            )
             logger.info(f"  LR:         {self.optimizer.param_groups[0]['lr']:.6f}")
-            
+
             # Memory cleanup and logging after each epoch
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -470,9 +492,11 @@ class LSTMTrainer:
                 performance = (
                     "IMPROVING"
                     if is_best
-                    else "PLATEAU"
-                    if abs(val_loss - best_val_loss) < plateau_tol
-                    else "DECLINING"
+                    else (
+                        "PLATEAU"
+                        if abs(val_loss - best_val_loss) < plateau_tol
+                        else "DECLINING"
+                    )
                 )
             else:
                 # Without validation, assess based on training loss trend
@@ -487,9 +511,7 @@ class LSTMTrainer:
             speed = (
                 "FAST"
                 if epoch_time < fast_time
-                else "MEDIUM"
-                if epoch_time < medium_time
-                else "SLOW"
+                else "MEDIUM" if epoch_time < medium_time else "SLOW"
             )
             validation_status = (
                 "with validation monitoring"
@@ -545,7 +567,7 @@ class LSTMTrainer:
             if self.early_stopping.early_stop
             else "completed all epochs"
         )
-        
+
         # Time analysis
         thresholds = self.config.get("thresholds", {})
         quick_time = thresholds.get("quick_training_time", 300)
@@ -553,31 +575,37 @@ class LSTMTrainer:
         time_assessment = (
             "QUICK"
             if total_time < quick_time
-            else "MODERATE"
-            if total_time < moderate_time
-            else "LENGTHY"
+            else "MODERATE" if total_time < moderate_time else "LENGTHY"
         )
-        
+
         # Training efficiency metrics
         avg_epoch_time = total_time / final_epoch if final_epoch > 0 else 0
         epochs_per_minute = final_epoch / (total_time / 60) if total_time > 0 else 0
-        
+
         # Loss improvement analysis
-        if len(self.history['train_loss']) >= 2:
-            initial_train_loss = self.history['train_loss'][0]
-            final_train_loss = self.history['train_loss'][-1]
-            train_improvement = ((initial_train_loss - final_train_loss) / initial_train_loss) * 100
-            
-            if has_validation and len(self.history['val_loss']) >= 2:
-                initial_val_loss = self.history['val_loss'][0]
-                final_val_loss = self.history['val_loss'][-1]
-                val_improvement = ((initial_val_loss - final_val_loss) / initial_val_loss) * 100
-                logger.info(f"  Loss improvement: train {train_improvement:+.1f}%, val {val_improvement:+.1f}%")
+        if len(self.history["train_loss"]) >= 2:
+            initial_train_loss = self.history["train_loss"][0]
+            final_train_loss = self.history["train_loss"][-1]
+            train_improvement = (
+                (initial_train_loss - final_train_loss) / initial_train_loss
+            ) * 100
+
+            if has_validation and len(self.history["val_loss"]) >= 2:
+                initial_val_loss = self.history["val_loss"][0]
+                final_val_loss = self.history["val_loss"][-1]
+                val_improvement = (
+                    (initial_val_loss - final_val_loss) / initial_val_loss
+                ) * 100
+                logger.info(
+                    f"  Loss improvement: train {train_improvement:+.1f}%, val {val_improvement:+.1f}%"
+                )
             else:
                 logger.info(f"  Loss improvement: train {train_improvement:+.1f}%")
-                
-        logger.info(f"  Training efficiency: {epochs_per_minute:.1f} epochs/min, {avg_epoch_time:.1f}s/epoch avg")
-        
+
+        logger.info(
+            f"  Training efficiency: {epochs_per_minute:.1f} epochs/min, {avg_epoch_time:.1f}s/epoch avg"
+        )
+
         logger.info(
             f"🎯 Training Summary: {early_stopped_msg}, took {time_assessment.lower()} time ({total_time / 60:.1f} min)"
         )

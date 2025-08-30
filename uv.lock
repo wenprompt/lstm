@@ -338,7 +338,7 @@ requires-dist = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "psutil", specifier = ">=7.0.0" },
+    { name = "psutil", specifier = ">=7.0.0,<8.0.0" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "scikit-learn" },
@@ -355,7 +355,7 @@ dev = [
     { name = "ruff", specifier = ">=0.12.8" },
     { name = "scikit-learn-stubs", specifier = ">=0.0.3" },
     { name = "scipy", specifier = ">=1.16.1" },
-    { name = "types-psutil", specifier = ">=7.0.0.20250822" },
+    { name = "types-psutil", specifier = ">=7.0.0,<8.0.0" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250822" },
     { name = "types-seaborn", specifier = ">=0.13.2.20250809" },
 ]

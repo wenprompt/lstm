@@ -24,7 +24,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -78,7 +78,7 @@ class DataBuildingValidator:
         )
         return results
 
-    def validate_continuous_futures_output(self) -> Dict[str, any]:
+    def validate_continuous_futures_output(self) -> Dict[str, Any]:
         """Validate continuous futures construction output."""
         logger.info("\n🔍 Validating continuous futures output...")
 
@@ -139,7 +139,7 @@ class DataBuildingValidator:
 
         return validation_results
 
-    def validate_date_parsing_consistency(self) -> Dict[str, any]:
+    def validate_date_parsing_consistency(self) -> Dict[str, Any]:
         """Validate date parsing across different source files."""
         logger.info("\n🔍 Validating date parsing consistency...")
 
@@ -226,7 +226,7 @@ class DataBuildingValidator:
         )
         return {"date_formats": date_formats, "all_successful": all_successful}
 
-    def validate_feature_alignment(self) -> Dict[str, any]:
+    def validate_feature_alignment(self) -> Dict[str, Any]:
         """Validate feature alignment in consolidated dataset."""
         logger.info("\n🔍 Validating feature alignment...")
 
@@ -271,6 +271,7 @@ class DataBuildingValidator:
             ],
             "has_y_target": "Y" in df.columns,
             "feature_count_match": len(actual_features) == len(expected_features),
+            "feature_set_match": set(actual_features) == set(expected_features),
         }
 
         # Check for missing values patterns
@@ -311,6 +312,9 @@ class DataBuildingValidator:
         logger.info(
             f"  ✅ Feature count match: {alignment_results['feature_count_match']}"
         )
+        logger.info(
+            f"  ✅ Feature set match: {alignment_results['feature_set_match']}"
+        )
 
         if alignment_results["missing_features"]:
             logger.error(
@@ -334,14 +338,14 @@ class DataBuildingValidator:
 
         return alignment_results
 
-    def validate_forward_fill_logic(self) -> Dict[str, any]:
+    def validate_forward_fill_logic(self) -> Dict[str, Any]:
         """Validate forward-fill logic for weekly data."""
         logger.info("\n🔍 Validating forward-fill logic...")
 
         # Load weekly raw data
         weekly_files = {
             "IOCJ Inventory": self.raw_dir / "IOCJ Inventory.csv",
-            "IOCJ Weekly Shipment": self.raw_dir / "IOCJ Weekly Shipment.csv",
+            "IOCJ Weekly shipment": self.raw_dir / "IOCJ Weekly Shipment.csv",
         }
 
         forward_fill_results = {}
@@ -353,6 +357,7 @@ class DataBuildingValidator:
 
             # Load raw weekly data
             weekly_raw = pd.read_csv(file_path, encoding="utf-8-sig")
+            weekly_raw.columns = weekly_raw.columns.str.strip()
             weekly_raw["Date"] = pd.to_datetime(
                 weekly_raw["Date"], format="%d/%m/%Y", dayfirst=True, errors="coerce"
             )
@@ -376,7 +381,7 @@ class DataBuildingValidator:
 
                 if matching_col:
                     # Validate forward-fill worked correctly
-                    original_count = len(weekly_raw.dropna())
+                    original_count = weekly_raw[feature_name].notna().sum()
                     filled_count = len(consolidated_df[matching_col].dropna())
 
                     forward_fill_results[feature_name] = {
@@ -402,7 +407,7 @@ class DataBuildingValidator:
 
         return forward_fill_results
 
-    def validate_price_continuity(self) -> Dict[str, any]:
+    def validate_price_continuity(self) -> Dict[str, Any]:
         """Validate price continuity at contract rollover points."""
         logger.info("\n🔍 Validating price continuity at rollover points...")
 
@@ -449,7 +454,7 @@ class DataBuildingValidator:
 
         return continuity_results
 
-    def validate_target_variable_calculation(self) -> Dict[str, any]:
+    def validate_target_variable_calculation(self) -> Dict[str, Any]:
         """Validate target variable Y calculation accuracy."""
         logger.info("\n🔍 Validating target variable Y calculation...")
 
@@ -520,7 +525,7 @@ class DataBuildingValidator:
 
         return target_results
 
-    def validate_data_file_integrity(self) -> Dict[str, any]:
+    def validate_data_file_integrity(self) -> Dict[str, Any]:
         """Validate integrity of source data files."""
         logger.info("\n🔍 Validating source data file integrity...")
 
@@ -590,12 +595,12 @@ class DataBuildingValidator:
             ],
         }
 
-    def run_comprehensive_validation(self) -> Dict[str, any]:
+    def run_comprehensive_validation(self) -> Dict[str, Any]:
         """Run all validation checks."""
         logger.info("🧪 STARTING COMPREHENSIVE DATA BUILDING VALIDATION")
         logger.info("=" * 70)
 
-        results = {}
+        results: Dict[str, Any] = {}
 
         try:
             # 1. File integrity
@@ -628,7 +633,7 @@ class DataBuildingValidator:
                 and all(results["m1_mapping"].values())
                 and results["date_parsing"]["all_successful"]
                 and results["continuous_futures"].get("price_continuity_ok", False)
-                and results["feature_alignment"].get("feature_count_match", False)
+                and results["feature_alignment"].get("feature_set_match", False)
                 and results["target_calculation"].get("calculation_accurate", False)
             )
 
@@ -667,42 +672,49 @@ def main():
     print("=" * 50)
 
     # File integrity
-    integrity = results["file_integrity"]
-    print(
-        f"Source files: {len(integrity['file_integrity']) - len(integrity['missing_files'])}/{len(integrity['file_integrity'])} OK"
-    )
+    integrity = results.get("file_integrity")
+    if isinstance(integrity, dict):
+        missing_files = integrity.get("missing_files", [])
+        file_integrity_dict = integrity.get("file_integrity", {})
+        if isinstance(file_integrity_dict, dict):
+            print(
+                f"Source files: {len(file_integrity_dict) - len(missing_files)}/{len(file_integrity_dict)} OK"
+            )
 
     # M+1 mapping
-    mapping = results["m1_mapping"]
-    mapping_passed = sum(mapping.values())
-    print(f"M+1 contract mapping: {mapping_passed}/{len(mapping)} test cases passed")
+    mapping = results.get("m1_mapping")
+    if isinstance(mapping, dict):
+        mapping_passed = sum(mapping.values())
+        print(f"M+1 contract mapping: {mapping_passed}/{len(mapping)} test cases passed")
 
     # Date parsing
-    date_parsing = results["date_parsing"]
-    print(
-        f"Date parsing: {'ALL FORMATS OK' if date_parsing['all_successful'] else 'ISSUES DETECTED'}"
-    )
+    date_parsing = results.get("date_parsing")
+    if isinstance(date_parsing, dict):
+        print(
+            f"Date parsing: {'ALL FORMATS OK' if date_parsing.get('all_successful') else 'ISSUES DETECTED'}"
+        )
 
     # Features
-    features = results["feature_alignment"]
-    if features.get("file_exists", False):
+    features = results.get("feature_alignment")
+    if isinstance(features, dict) and features.get("file_exists", False):
+        actual_features = features.get("actual_features", [])
         print(
-            f"Feature alignment: {len(features['actual_features'])}/12 features present"
+            f"Feature alignment: {len(actual_features)}/12 features present"
         )
         print(
             f"Target variable Y: {'CALCULATED CORRECTLY' if features.get('y_calculation_correct', False) else 'ISSUES DETECTED'}"
         )
 
     # Price continuity
-    continuity = results["price_continuity"]
-    if continuity.get("file_exists", False):
+    continuity = results.get("price_continuity")
+    if isinstance(continuity, dict) and continuity.get("file_exists", False):
         print(
-            f"Price continuity: {'GOOD' if continuity['price_continuity_good'] else 'ISSUES DETECTED'}"
+            f"Price continuity: {'GOOD' if continuity.get('price_continuity_good') else 'ISSUES DETECTED'}"
         )
 
     print("=" * 50)
 
-    if results["overall_passed"]:
+    if results.get("overall_passed"):
         print("🎯 RESULT: Data building pipeline is ACCURATE and ready for ML training")
     else:
         print("⚠️ RESULT: Data building pipeline has ISSUES that need to be fixed")

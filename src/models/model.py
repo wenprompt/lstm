@@ -14,6 +14,7 @@ Based on verified PyTorch documentation from /pytorch/pytorch.
 import torch
 import torch.nn as nn
 from typing import Dict, Any, Tuple, Optional
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import logging
 import copy
 
@@ -199,11 +200,23 @@ class IronOreLSTM(nn.Module):
         # Pass through LSTM layers
         # lstm_out shape: (batch_size, seq_len, hidden_size * num_directions)
         # hidden states are initialized to zeros automatically
-        lstm_out, (hidden, cell) = self.lstm(x)
+        if lengths is not None:
+            # lengths: 1D tensor of actual sequence lengths per sample
+            packed = pack_padded_sequence(
+                x, lengths.cpu(), batch_first=True, enforce_sorted=False
+            )
+            packed_out, (hidden, cell) = self.lstm(packed)
+            # For LSTM, last-layer hidden states summarize sequences.
+            # Shape: (num_layers * num_directions, batch, hidden_size)
+            if self.bidirectional:
+                last_output = torch.cat((hidden[-2], hidden[-1]), dim=1)
+            else:
+                last_output = hidden[-1]
+        else:
+            lstm_out, (hidden, cell) = self.lstm(x)
+            last_output = lstm_out[:, -1, :]
 
-        # Use the last timestep output for prediction
-        # Shape: (batch_size, hidden_size * num_directions)
-        last_output = lstm_out[:, -1, :]
+        # last_output shape: (batch_size, hidden_size * num_directions)
 
         # Apply layer normalization if configured
         if self.layer_norm is not None:
