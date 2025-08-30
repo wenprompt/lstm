@@ -7,18 +7,19 @@ import pickle
 import pandas as pd
 from pathlib import Path
 
+
 def inspect_pickle_file(file_path: str) -> None:
     """Inspect a pickle file and print its structure."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"INSPECTING: {file_path}")
-    print(f"{'='*60}")
-    
+    print(f"{'=' * 60}")
+
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             data = pickle.load(f)
-        
+
         print(f"Type: {type(data)}")
-        
+
         if isinstance(data, pd.DataFrame):
             print(f"Shape: {data.shape}")
             print(f"Columns: {list(data.columns)}")
@@ -32,7 +33,7 @@ def inspect_pickle_file(file_path: str) -> None:
             print(data.dtypes)
             print("\nBasic statistics:")
             print(data.describe())
-            
+
         elif isinstance(data, dict):
             print(f"Dictionary with {len(data)} keys: {list(data.keys())}")
             for key, value in data.items():
@@ -41,8 +42,10 @@ def inspect_pickle_file(file_path: str) -> None:
                 if isinstance(value, pd.DataFrame):
                     print(f"    Shape: {value.shape}")
                     print(f"    Columns: {list(value.columns)}")
-                    if hasattr(value.index, 'min') and hasattr(value.index, 'max'):
-                        print(f"    Date range: {value.index.min()} to {value.index.max()}")
+                    if hasattr(value.index, "min") and hasattr(value.index, "max"):
+                        print(
+                            f"    Date range: {value.index.min()} to {value.index.max()}"
+                        )
                 elif isinstance(value, (list, tuple)):
                     print(f"    Length: {len(value)}")
                     if len(value) > 0:
@@ -50,7 +53,7 @@ def inspect_pickle_file(file_path: str) -> None:
                         print(f"    Last item: {value[-1]}")
                 else:
                     print(f"    Value: {value}")
-                    
+
         elif isinstance(data, (list, tuple)):
             print(f"Length: {len(data)}")
             if len(data) > 0:
@@ -58,28 +61,27 @@ def inspect_pickle_file(file_path: str) -> None:
                 print(f"First item: {data[0]}")
                 if len(data) > 1:
                     print(f"Last item: {data[-1]}")
-                    
+
         else:
             print(f"Content: {data}")
-            
+
     except Exception as e:
         print(f"ERROR loading {file_path}: {e}")
+
 
 def main():
     """Main function to inspect both pickle files."""
     data_dir = Path("data/raw")
-    
-    pickle_files = [
-        "Raw_M65F_DSP.pkl",
-        "Raw_FEF_Close.pkl"
-    ]
-    
+
+    pickle_files = ["Raw_M65F_DSP.pkl", "Raw_FEF_Close.pkl"]
+
     for file_name in pickle_files:
         file_path = data_dir / file_name
         if file_path.exists():
             inspect_pickle_file(str(file_path))
         else:
             print(f"\nFile not found: {file_path}")
+
 
 if __name__ == "__main__":
     main()
