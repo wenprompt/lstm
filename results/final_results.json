@@ -18,10 +18,10 @@
       "IOCJ Weekly shipment"
     ],
     "model": {
-      "sequence_length": 10,
-      "hidden_size": 64,
+      "sequence_length": 15,
+      "hidden_size": 96,
       "number_of_layers": 2,
-      "dropout_rate": 0.35,
+      "dropout_rate": 0.2,
       "bidirectional": true,
       "layer_norm": true,
       "input_size": 12
@@ -29,15 +29,15 @@
     "training": {
       "batch_size": 32,
       "learning_rate": 0.001,
-      "epochs": 100,
-      "early_stopping_patience": 15,
-      "gradient_clip_norm": 0.5,
+      "epochs": 70,
+      "early_stopping_patience": 12,
+      "gradient_clip_norm": 0.3,
       "loss_function": "mse",
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.75,
-      "val_ratio": 0.05,
+      "train_ratio": 0.8,
+      "val_ratio": 0.0,
       "test_ratio": 0.2
     },
     "scaling": {
@@ -74,22 +74,22 @@
     }
   },
   "training": {
-    "final_epoch": 24,
-    "total_time_minutes": 0.03817868630091349,
-    "best_val_loss": 1.4638336300849915,
-    "final_train_loss": 4.356071267809186,
-    "final_val_loss": 1.9014215469360352,
+    "final_epoch": 29,
+    "total_time_minutes": 0.045715049902598066,
+    "best_val_loss": 4.037616285410794,
+    "final_train_loss": 4.063416838645935,
+    "final_val_loss": 4.063416838645935,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.2502784418884365,
-      "mae": 1.0173184871673584,
-      "mse": 1.5631961822509766,
-      "directional_accuracy": 50.0,
-      "r_squared": -0.3600984811782837,
-      "mape": 505615.4375,
-      "smape": 134.38479614257812
+      "rmse": 1.087621193194657,
+      "mae": 0.867990255355835,
+      "mse": 1.1829198598861694,
+      "directional_accuracy": 47.16981132075472,
+      "r_squared": -0.026317477226257324,
+      "mape": 162519.421875,
+      "smape": 165.0968780517578
     },
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",

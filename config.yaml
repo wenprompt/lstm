@@ -26,33 +26,20 @@ features:
   - "65 Index" # 65% grade index
   # - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
   - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
-# features:
-#   - "price_65_m1" # Continuous M+1 65% iron ore futures price
-#   - "price_62_m1" # Continuous M+1 62% iron ore futures price
-#   - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
-#   - "lump premium" # Iron ore lump premium
-#   - "IOCJ Import margin" # IOCJ import margin
-#   - "rebar steel margin " # Rebar steel margin (note: trailing space in original data)
-#   - "indian pellet premium" # Indian pellet premium
-#   - "(IOCJ+SSF)/2-PBF" # Combined index calculation
-#   - "62 Index" # 62% grade index
-#   - "65 Index" # 65% grade index
-#   - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
-#   - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
 
 # Model architecture hyperparameters
 model:
   # Number of time steps in each input sequence for LSTM
-  sequence_length: 10
+  sequence_length: 15
 
   # Number of hidden units in LSTM layers
-  hidden_size: 64
+  hidden_size: 96
 
   # Number of stacked LSTM layers
   number_of_layers: 2
 
   # Dropout rate for regularization (prevent overfitting)
-  dropout_rate: 0.35
+  dropout_rate: 0.20
 
   # Use bidirectional LSTM (processes sequences forward and backward)
   bidirectional: true
@@ -73,10 +60,10 @@ training:
   learning_rate: 0.001
 
   # Maximum number of training epochs
-  epochs: 100
+  epochs: 70
 
   # Early stopping patience (stop if no validation improvement for N epochs)
-  early_stopping_patience: 15
+  early_stopping_patience: 12
 
   # Gradient clipping norm to prevent exploding gradients
   gradient_clip_norm: 0.3 # 1.0 caused some unstability of losses in training
@@ -90,13 +77,13 @@ training:
 # Data splitting ratios (chronological splits per PRD)
 # Total period: March 30, 2022 - Present (~2.4 years worth, 868 valid samples)
 splits:
-  # Training set: ~70% (~1.7 years, ~607 samples)
-  train_ratio: 0.75
+  # Training set:
+  train_ratio: 0.80
 
-  # Validation set: ~15% (~4 months, ~130 samples)
-  val_ratio: 0.05
+  # Validation set:
+  val_ratio: 0.00
 
-  # Test set: ~15% (~4 months, ~131 samples)
+  # Test set:
   test_ratio: 0.20
 
 # Feature scaling configuration

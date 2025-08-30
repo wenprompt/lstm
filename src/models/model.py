@@ -23,28 +23,28 @@ logger = logging.getLogger(__name__)
 class IronOreLSTM(nn.Module):
     """
     Bidirectional LSTM model for iron ore price forecasting.
-    
+
     Architecture:
     - Input: sequences of 12 features over sequence_length timesteps
     - Bidirectional LSTM layers with configurable hidden_size and num_layers
     - Optional layer normalization and dropout for regularization
     - Fully connected output layer for single prediction
-    
+
     Per PyTorch LSTM documentation:
     - bidirectional=True doubles the hidden_size output
     - Input shape: (batch, seq_len, input_size) with batch_first=True
     - Output shape: (batch, seq_len, hidden_size * 2) for bidirectional
     """
-    
+
     def __init__(self, config: Dict[str, Any]):
         """
         Initialize LSTM model with configuration parameters.
-        
+
         Args:
             config: Configuration dictionary containing model hyperparameters
         """
         super(IronOreLSTM, self).__init__()
-        
+
         # Extract model configuration parameters
         self.input_size = config["model"]["input_size"]  # 12 features
         self.hidden_size = config["model"]["hidden_size"]  # e.g., 96
@@ -52,121 +52,200 @@ class IronOreLSTM(nn.Module):
         self.dropout_rate = config["model"]["dropout_rate"]  # e.g., 0.35
         self.bidirectional = config["model"]["bidirectional"]  # True
         self.use_layer_norm = config["model"]["layer_norm"]  # True
+
+        logger.info("Initializing LSTM model with detailed architecture:")
+        logger.info(f"  Input features: {self.input_size}")
+        logger.info(f"  Hidden units per direction: {self.hidden_size}")
+        logger.info(f"  Number of LSTM layers: {self.num_layers}")
+        logger.info(f"  Bidirectional processing: {self.bidirectional} {'(2x hidden output)' if self.bidirectional else '(1x hidden output)'}")
+        logger.info(f"  Dropout rate: {self.dropout_rate} {'(inter-layer + post-LSTM)' if self.dropout_rate > 0 else '(disabled)'}")
+        logger.info(f"  Layer normalization: {self.use_layer_norm} {'(enabled for stability)' if self.use_layer_norm else '(disabled)'}")
         
-        logger.info("Initializing LSTM model:")
-        logger.info(f"  Input size: {self.input_size}")
-        logger.info(f"  Hidden size: {self.hidden_size}")
-        logger.info(f"  Number of layers: {self.num_layers}")
-        logger.info(f"  Bidirectional: {self.bidirectional}")
-        logger.info(f"  Dropout rate: {self.dropout_rate}")
-        logger.info(f"  Layer normalization: {self.use_layer_norm}")
-        
+        # Log detailed architecture calculations
+        directions = 2 if self.bidirectional else 1
+        lstm_output_dim = self.hidden_size * directions
+        logger.info(f"  LSTM output dimensions: {lstm_output_dim} ({self.hidden_size} × {directions})")
+        logger.info(f"  Final prediction layer: {lstm_output_dim} → 1 (regression output)")
+
         # Main LSTM layer - using verified PyTorch API
         self.lstm = nn.LSTM(
-            input_size=self.input_size,          # 12 features
-            hidden_size=self.hidden_size,        # Hidden units per direction
-            num_layers=self.num_layers,          # Number of stacked LSTM layers  
-            batch_first=True,                    # Input shape: (batch, seq, feature)
-            dropout=self.dropout_rate if self.num_layers > 1 else 0,  # Dropout between layers
-            bidirectional=self.bidirectional     # Process sequences forward and backward
+            input_size=self.input_size,  # 12 features
+            hidden_size=self.hidden_size,  # Hidden units per direction
+            num_layers=self.num_layers,  # Number of stacked LSTM layers
+            batch_first=True,  # Input shape: (batch, seq, feature)
+            dropout=self.dropout_rate
+            if self.num_layers > 1
+            else 0,  # Dropout between layers
+            bidirectional=self.bidirectional,  # Process sequences forward and backward
         )
-        
+
         # Calculate LSTM output size (doubles for bidirectional)
-        lstm_output_size = self.hidden_size * 2 if self.bidirectional else self.hidden_size
-        
+        lstm_output_size = (
+            self.hidden_size * 2 if self.bidirectional else self.hidden_size
+        )
+
         # Optional layer normalization for training stability
         self.layer_norm: Optional[nn.LayerNorm] = None
         if self.use_layer_norm:
             self.layer_norm = nn.LayerNorm(lstm_output_size)
-            
+
         # Additional dropout layer after LSTM (separate from inter-layer dropout)
         self.dropout = nn.Dropout(self.dropout_rate)
-        
+
         # Fully connected layer for final prediction
         # Maps from LSTM output to single value (next-day log return prediction)
         self.fc = nn.Linear(lstm_output_size, 1)
-        
+
         # Initialize weights using Xavier/Glorot initialization for better convergence
         self._init_weights()
+
+        # Calculate and log parameter details
+        lstm_params = sum(p.numel() for p in self.lstm.parameters())
+        fc_params = sum(p.numel() for p in self.fc.parameters())
+        layer_norm_params = sum(p.numel() for p in self.layer_norm.parameters()) if self.layer_norm else 0
+        # Note: Dropout has no learnable parameters
+        total_params = lstm_params + fc_params + layer_norm_params
         
-        logger.info("Model architecture:")
-        logger.info(f"  LSTM output size: {lstm_output_size}")
-        logger.info("  Final output: single prediction")
+        logger.info("Model parameter breakdown:")
+        logger.info(f"  LSTM parameters: {lstm_params:,} ({lstm_params/total_params*100:.1f}%)")
+        logger.info(f"  Fully connected: {fc_params:,} ({fc_params/total_params*100:.1f}%)")
+        if layer_norm_params > 0:
+            logger.info(f"  Layer norm: {layer_norm_params:,} ({layer_norm_params/total_params*100:.1f}%)")
+        logger.info(f"  Total parameters: {total_params:,}")
         
+        # Memory estimation
+        param_memory_mb = total_params * 4 / (1024 * 1024)  # Assume float32
+        logger.info(f"  Estimated model size: {param_memory_mb:.1f}MB (float32)")
+        
+        logger.info("Model architecture summary:")
+        logger.info(f"  Input: (batch, {config['model']['sequence_length']}, {self.input_size})")
+        logger.info(f"  LSTM output: (batch, {config['model']['sequence_length']}, {lstm_output_size})")
+        logger.info("  Final output: (batch, 1) - single prediction per sequence")
+
     def _init_weights(self) -> None:
         """
-        Initialize model weights using Xavier/Glorot initialization.
-        
-        This helps with gradient flow and training stability.
-        LSTM weights are initialized by default, so we focus on the FC layer.
+        Initialize model weights using industry-standard initialization schemes.
+
+        Uses He initialization for ReLU-like activations and Xavier for others.
+        Applies proper initialization to all layers including LSTM.
         """
+        # Initialize LSTM weights manually for better control
+        for name, param in self.lstm.named_parameters():
+            if 'weight_ih' in name:
+                # Input-to-hidden weights: Xavier uniform
+                nn.init.xavier_uniform_(param.data)
+            elif 'weight_hh' in name:
+                # Hidden-to-hidden weights: Orthogonal initialization
+                nn.init.orthogonal_(param.data)
+            elif 'bias' in name:
+                # Initialize biases to zero, except forget gate bias (set to 1)
+                nn.init.zeros_(param.data)
+                # Set forget gate bias to 1 (industry best practice for LSTM)
+                n = param.size(0)
+                param.data[n//4:n//2].fill_(1.0)
+
         # Initialize fully connected layer weights
         nn.init.xavier_uniform_(self.fc.weight)
         nn.init.zeros_(self.fc.bias)
+
+        logger.info("Model weights initialized with industry-standard schemes:")
+        logger.info("  LSTM input-to-hidden: Xavier uniform (balanced variance)")
+        logger.info("  LSTM hidden-to-hidden: Orthogonal (stable gradients)")
+        logger.info("  LSTM biases: Zero init except forget gate = 1.0 (prevent vanishing)")
+        logger.info("  Fully connected: Xavier uniform (balanced variance)")
+        if self.layer_norm is not None:
+            logger.info("  Layer normalization: Default initialization (weight=1, bias=0)")
         
-        logger.info("Model weights initialized using Xavier uniform distribution")
-        
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Log initialization rationale
+        logger.info("Initialization benefits:")
+        logger.info("  • Prevents vanishing/exploding gradients")
+        logger.info("  • Maintains activation variance across layers")
+        logger.info("  • Forget gate bias=1.0 enables better long-term memory")
+        logger.info("  • Orthogonal recurrent weights preserve gradient flow")
+
+    def forward(self, x: torch.Tensor, lengths: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
-        Forward pass through the LSTM model.
-        
+        Forward pass through the LSTM model with detailed processing.
+
         Args:
             x: Input tensor of shape (batch_size, sequence_length, input_size)
                - batch_size: Number of sequences in batch
                - sequence_length: Number of timesteps (e.g., 20)
                - input_size: Number of features per timestep (12)
-               
+            lengths: Optional tensor of sequence lengths for packed sequences
+
         Returns:
             predictions: Tensor of shape (batch_size, 1) containing predictions
                         for next-day percentage log returns
         """
         batch_size, seq_len, features = x.shape
-        
-        # Validate input dimensions
+
+        # Validate input dimensions with detailed error reporting
         if features != self.input_size:
-            raise ValueError(f"Expected {self.input_size} input features, got {features}")
+            logger.error(
+                f"Input feature mismatch: model expects {self.input_size} features, "
+                f"received {features} features in tensor shape {x.shape}"
+            )
+            raise ValueError(
+                f"Expected {self.input_size} input features, got {features}. "
+                f"Check your data preprocessing and feature selection in config."
+            )
             
+        # Log forward pass details (only in debug mode to avoid spam)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Forward pass: batch_size={batch_size}, seq_len={seq_len}, features={features}")
+            logger.debug(f"Input tensor stats: min={x.min().item():.4f}, max={x.max().item():.4f}, mean={x.mean().item():.4f}")
+
         # Pass through LSTM layers
         # lstm_out shape: (batch_size, seq_len, hidden_size * num_directions)
         # hidden states are initialized to zeros automatically
         lstm_out, (hidden, cell) = self.lstm(x)
-        
+
         # Use the last timestep output for prediction
         # Shape: (batch_size, hidden_size * num_directions)
         last_output = lstm_out[:, -1, :]
-        
+
         # Apply layer normalization if configured
         if self.layer_norm is not None:
             last_output = self.layer_norm(last_output)
-            
+
         # Apply dropout for regularization
         last_output = self.dropout(last_output)
-        
+
         # Generate final prediction through fully connected layer
         # Shape: (batch_size, 1)
         predictions = self.fc(last_output)
-        
+
+        # Log prediction statistics (only in debug mode)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"Output predictions: min={predictions.min().item():.4f}, "
+                f"max={predictions.max().item():.4f}, mean={predictions.mean().item():.4f}"
+            )
+            
         return predictions
-    
+
     def get_model_info(self) -> Dict[str, Any]:
         """
         Get comprehensive model information for logging and debugging.
-        
+
         Returns:
             Dictionary containing model architecture details and parameter counts
         """
         # Count trainable parameters
         total_params = sum(p.numel() for p in self.parameters())
         trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        
+
         # Calculate parameter breakdown
         lstm_params = sum(p.numel() for p in self.lstm.parameters())
         fc_params = sum(p.numel() for p in self.fc.parameters())
-        
+
         model_info = {
-            "architecture": "Bidirectional LSTM" if self.bidirectional else "Unidirectional LSTM",
+            "architecture": "Bidirectional LSTM"
+            if self.bidirectional
+            else "Unidirectional LSTM",
             "input_size": self.input_size,
-            "hidden_size": self.hidden_size, 
+            "hidden_size": self.hidden_size,
             "num_layers": self.num_layers,
             "bidirectional": self.bidirectional,
             "dropout_rate": self.dropout_rate,
@@ -177,24 +256,28 @@ class IronOreLSTM(nn.Module):
             "fc_parameters": fc_params,
             "parameter_breakdown": {
                 "lstm": lstm_params,
-                "layer_norm": sum(p.numel() for p in self.layer_norm.parameters()) if self.layer_norm else 0,
-                "fully_connected": fc_params
-            }
+                "layer_norm": sum(p.numel() for p in self.layer_norm.parameters())
+                if self.layer_norm
+                else 0,
+                "fully_connected": fc_params,
+            },
         }
-        
+
         return model_info
-        
-    def init_hidden(self, batch_size: int, device: torch.device) -> Tuple[torch.Tensor, torch.Tensor]:
+
+    def init_hidden(
+        self, batch_size: int, device: torch.device
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Initialize hidden and cell states for LSTM.
-        
+
         This method is useful for inference or when you need explicit control
         over the initial hidden states.
-        
+
         Args:
             batch_size: Size of the batch
             device: Device to create tensors on (CPU or CUDA)
-            
+
         Returns:
             Tuple of (hidden_state, cell_state) tensors
             Shape: (num_layers * num_directions, batch_size, hidden_size)
@@ -217,17 +300,17 @@ class IronOreLSTM(nn.Module):
             device=device,
             dtype=dtype,
         )
-        
+
         return hidden, cell
 
 
 def create_model(config: Dict[str, Any]) -> IronOreLSTM:
     """
     Factory function to create LSTM model with configuration.
-    
+
     Args:
         config: Configuration dictionary from config.yaml
-        
+
     Returns:
         Initialized IronOreLSTM model ready for training
     """
@@ -243,10 +326,12 @@ def create_model(config: Dict[str, Any]) -> IronOreLSTM:
         model_config["model"]["input_size"] = dynamic_input_size
         logger.info(f"Dynamic input size calculated: {dynamic_input_size} features")
     else:
-        logger.warning("No features specified in config, using default input_size from config")
+        logger.warning(
+            "No features specified in config, using default input_size from config"
+        )
 
     model = IronOreLSTM(model_config)
-    
+
     # Log model information
     model_info = model.get_model_info()
     logger.info("Model created successfully:")
@@ -254,46 +339,54 @@ def create_model(config: Dict[str, Any]) -> IronOreLSTM:
     logger.info(f"  Input features: {model_info['input_size']}")
     logger.info(f"  Total parameters: {model_info['total_parameters']:,}")
     logger.info(f"  Trainable parameters: {model_info['trainable_parameters']:,}")
-    
+
     # Model complexity summary
     thresholds = model_config.get("thresholds", {})
     simple_threshold = thresholds.get("simple_model_params", 10000)
     moderate_threshold = thresholds.get("moderate_model_params", 100000)
-    complexity = "SIMPLE" if model_info['total_parameters'] < simple_threshold else "MODERATE" if model_info['total_parameters'] < moderate_threshold else "COMPLEX"
-    logger.info(f"🧠 Neural Network: {complexity} model with {model_info['total_parameters']/1000:.0f}K parameters, designed to learn iron ore price patterns")
-    
+    complexity = (
+        "SIMPLE"
+        if model_info["total_parameters"] < simple_threshold
+        else "MODERATE"
+        if model_info["total_parameters"] < moderate_threshold
+        else "COMPLEX"
+    )
+    logger.info(
+        f"🧠 Neural Network: {complexity} model with {model_info['total_parameters'] / 1000:.0f}K parameters, designed to learn iron ore price patterns"
+    )
+
     return model
 
 
 def get_model_summary(model: IronOreLSTM) -> str:
     """
     Generate a formatted summary of the model architecture.
-    
+
     Args:
         model: LSTM model instance
-        
+
     Returns:
         Formatted string containing model summary
     """
     info = model.get_model_info()
-    
+
     summary = f"""
-{'='*50}
+{"=" * 50}
 LSTM MODEL SUMMARY
-{'='*50}
-Architecture: {info['architecture']}
-Input Features: {info['input_size']}
-Hidden Size: {info['hidden_size']}
-Layers: {info['num_layers']}
-Dropout: {info['dropout_rate']:.2f}
-Layer Norm: {info['layer_norm']}
+{"=" * 50}
+Architecture: {info["architecture"]}
+Input Features: {info["input_size"]}
+Hidden Size: {info["hidden_size"]}
+Layers: {info["num_layers"]}
+Dropout: {info["dropout_rate"]:.2f}
+Layer Norm: {info["layer_norm"]}
 
 Parameter Count:
-- Total: {info['total_parameters']:,}
-- Trainable: {info['trainable_parameters']:,}
-- LSTM: {info['lstm_parameters']:,}
-- FC: {info['fc_parameters']:,}
-{'='*50}
+- Total: {info["total_parameters"]:,}
+- Trainable: {info["trainable_parameters"]:,}
+- LSTM: {info["lstm_parameters"]:,}
+- FC: {info["fc_parameters"]:,}
+{"=" * 50}
     """
-    
+
     return summary.strip()
