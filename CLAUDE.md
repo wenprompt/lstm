@@ -125,6 +125,17 @@ To run the visualization script (after tuning is complete):
 uv run python -m src.tuning.visualize_tuning
 ```
 
+#### Hyperparameter Tuning Enhancements
+
+**Recent Improvements** (August 2024):
+
+- ✅ **Fixed Critical Data Assignment Bug**: Corrected swapped predictions/actuals in tuning results CSV
+- ✅ **Added Comprehensive Logging**: Tuning logs now saved to `results/logs/hypertuning/` with timestamps
+- ✅ **Evaluation Consistency**: Both main.py and tuning script now use test set for final evaluation
+- ✅ **Consolidated Results**: Eliminated redundant evaluation_results.json, unified in final_results.json
+
+**Data Validation Lesson**: Always verify that variable assignments match their semantic meaning, especially when handling prediction/actual data pairs across different pipeline components.
+
 ### What Happens When You Run `main.py`
 
 When you execute `uv run python main.py`, the complete LSTM pipeline runs automatically:
@@ -241,8 +252,10 @@ results/models/final_model.pt  # Final epoch model weights
 **Evaluation Results**
 
 ```
-results/evaluation_results.json     # All metrics in JSON format
-results/final_results.json          # Complete pipeline results
+results/final_results.json          # Complete pipeline results (consolidated)
+results/logs/training/              # Main pipeline training logs
+results/logs/hypertuning/           # Hyperparameter tuning logs  
+results/tuning_results.csv          # Comprehensive tuning results with predictions
 ```
 
 **Visualization Plots**
@@ -379,6 +392,8 @@ Edit `config.yaml` to modify:
 - **CUDA errors**: Set `device.use_cuda: false` in config.yaml for CPU-only
 - **Memory issues**: Reduce `batch_size` or `sequence_length` in config.yaml
 - **Poor performance**: Check feature scaling, try different `hidden_size`
+- **Visualization data mismatch**: If plots show swapped actual/predicted patterns, re-run tuning script to regenerate CSV with correct column assignments
+- **Dashboard inconsistencies**: Ensure all evaluation components use same test set and data flow patterns
 
 #### Monitoring Training
 
@@ -389,13 +404,15 @@ Edit `config.yaml` to modify:
 
 #### Performance Analysis Locations
 
-- **Training metrics**: Final console output + training logs
-- **Test performance**: `results/evaluation_results.json`
+- **Training metrics**: Final console output + `results/logs/training/`
+- **Test performance**: `results/final_results.json` (consolidated metrics)
+- **Tuning analysis**: `results/tuning_results.csv` + `results/logs/hypertuning/`
 - **Visual analysis**: 4 plots in `results/plots/`
   - `actual_vs_predicted_scatter.png` - Overall prediction quality
   - `timeseries_comparison.png` - Temporal prediction patterns
   - `residuals_analysis.png` - Error distribution analysis
   - `distribution_comparison.png` - Statistical comparison
+- **Tuning dashboards**: 5 comprehensive dashboards in `results/plots/hypertuning/`
 
 ### File-by-File Responsibilities
 
@@ -655,6 +672,33 @@ features:
 - Model input size is dynamically calculated based on selected features
 - Feature scaling is applied only to selected features
 - All selected features must exist in the consolidated dataset
+
+#### Data Pipeline Validation Best Practices
+
+Based on recent debugging experience, always verify:
+
+1. **Variable Assignment Consistency**: Ensure function return values match variable names semantically
+   ```python
+   # ✅ CORRECT: Variable names match return order
+   predictions, actual_values = evaluator.predict(loader)
+   
+   # ❌ WRONG: Swapped variables create data labeling errors  
+   actual_values, predictions = evaluator.predict(loader)
+   ```
+
+2. **Cross-Component Data Flow**: Verify data consistency between main pipeline and auxiliary scripts
+   - Main evaluation uses `evaluate_model()` → correct data flow
+   - Tuning evaluation should use same patterns for consistency
+   - All CSV outputs should have columns that match their actual content
+
+3. **Visualization Data Validation**: Check that volatile data (actuals) and smooth data (predictions) are correctly labeled in plots
+
+4. **Return Order Documentation**: Always document and follow consistent return patterns
+   ```python
+   def predict(self, loader) -> Tuple[np.ndarray, np.ndarray]:
+       """Returns: (predictions, actuals) - always this order"""
+       return self.predictions, self.actuals
+   ```
 
 ### Environment Variables and Settings
 

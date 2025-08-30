@@ -91,7 +91,4 @@ During hyperparameter tuning, the model with the **highest composite score** is 
 
 **TO DOUBLE CHECK**
 
-- review @validate_data_building.py
-- @visualize_tuning.py and tune_hyperparameters.py are gg
-- hypertuning doesnt have early stopping i believe
-- why is my result for running main.py different from the result from hyperparameters tuning
+- NOTHING, YAY!

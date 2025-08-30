@@ -19,8 +19,8 @@ import pandas as pd
 import copy
 from pathlib import Path
 from typing import Dict, Any, List, Iterator
-import sys
 import json
+from datetime import datetime
 
 # Import core components from the src directory
 from src.data.data_loader import DataLoader as IronOreDataLoader
@@ -49,12 +49,22 @@ BASE_CONFIG_PATH = "config.yaml"
 # Output file for results
 RESULTS_CSV_PATH = Path("results/tuning_results.csv")
 
+# Ensure hypertuning logs directory exists
+Path("results/logs/hypertuning").mkdir(parents=True, exist_ok=True)
+
 # --- Logging Setup ---
 
+# Configure enhanced logging with detailed formatting (same as main.py)
+log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout,  # Log to console
+    format=log_format,
+    handlers=[
+        logging.StreamHandler(),  # Log to console
+        logging.FileHandler(
+            f"results/logs/hypertuning/hypertuning_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        ),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -99,7 +109,7 @@ def update_config(
     return config
 
 
-def run_trial(config: Dict[str, Any], test_y_actual: List[float]) -> Dict[str, Any]:
+def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Run a single training and validation trial with comprehensive metric evaluation.
 
@@ -136,20 +146,15 @@ def run_trial(config: Dict[str, Any], test_y_actual: List[float]) -> Dict[str, A
         )
         evaluator = ModelEvaluator(model, device, config)
 
-        # Use validation set if available, otherwise use test set for evaluation
-        has_validation = len(val_loader.dataset) > 0  # type: ignore
-        eval_loader = val_loader if has_validation else _  # test_loader from line 110
-
-        # We need to recreate test_loader since we used _ above
-        if not has_validation:
-            _, _, eval_loader = create_dataloaders(train_df, val_df, test_df, config)
+        # ALWAYS use test set for final evaluation (consistent with main.py)
+        # Validation set is only for training/early stopping, not final evaluation
+        _, _, eval_loader = create_dataloaders(train_df, val_df, test_df, config)
 
         # Generate predictions on evaluation set
-        _, predictions = evaluator.predict(eval_loader)
+        predictions, actual_values = evaluator.predict(eval_loader)
         metrics = evaluator.calculate_metrics()
 
-        # Return comprehensive metrics (use consistent naming regardless of eval set)
-        eval_set_name = "validation" if has_validation else "test"
+        # Return comprehensive metrics (always evaluated on test set for consistency)
         trial_metrics = {
             "best_val_loss": training_results.get("best_val_loss", float("inf")),
             "val_rmse": metrics.get("rmse", float("inf")),
@@ -159,14 +164,14 @@ def run_trial(config: Dict[str, Any], test_y_actual: List[float]) -> Dict[str, A
             "val_smape": metrics.get("smape", float("inf")),
             "final_epoch": training_results.get("final_epoch", 0),
             "training_time": training_results.get("training_time", 0.0),
-            "eval_set_used": eval_set_name,  # Track which set was used for evaluation
+            "eval_set_used": "test",  # Always test set for consistent evaluation
             "predictions": json.dumps(predictions.tolist()),  # Add predictions to results
-            "test_y_actual": json.dumps(test_y_actual),  # Add actual Y values to results
+            "test_y_actual": json.dumps(actual_values.tolist()),  # Use actual values that match predictions
         }
 
         logger.info(
             f"Trial completed - Best Val Loss: {trial_metrics['best_val_loss']:.4f} "
-            f"({eval_set_name} eval), "
+            f"(test set eval), "
             f"Directional Acc: {trial_metrics['val_directional_accuracy']:.1f}%, "
             f"RMSE: {trial_metrics['val_rmse']:.4f}, R²: {trial_metrics['val_r_squared']:.3f}"
         )
@@ -218,13 +223,16 @@ def main():
         logger.error(f"Error parsing base configuration file: {e}")
         return
 
-    # Load data once for all trials
-    data_loader = IronOreDataLoader(base_config)
-    _, _, test_df = data_loader.get_processed_data()
-    if test_df.empty:
-        logger.error("Test set is empty. Cannot perform tuning.")
+    # Validate that we can load data
+    try:
+        data_loader = IronOreDataLoader(base_config)
+        _, _, test_df = data_loader.get_processed_data()
+        if test_df.empty:
+            logger.error("Test set is empty. Cannot perform tuning.")
+            return
+    except Exception as e:
+        logger.error(f"Failed to load data: {e}")
         return
-    test_y_actual = test_df['Y'].tolist() # Get actual Y values once
 
     # Generate all combinations
     param_combinations = list(generate_hyperparameter_combinations())
@@ -244,8 +252,8 @@ def main():
         # Create a specific config for this trial
         trial_config = update_config(base_config, params)
 
-        # Run the trial, passing the actual Y values
-        trial_metrics = run_trial(trial_config, test_y_actual)
+        # Run the trial
+        trial_metrics = run_trial(trial_config)
         logger.info(f"TRIAL {i + 1}/{total_trials} COMPLETED.")
 
         # Record results

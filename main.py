@@ -313,7 +313,6 @@ def evaluate_trained_model(
     )
 
     logger.info("Evaluation completed successfully")
-    logger.info(f"Results saved to: {evaluation_results['results_path']}")
     logger.info("Plots saved to: results/plots/")
 
     return evaluation_results
@@ -349,6 +348,10 @@ def save_final_results(
         },
         "evaluation": {
             "test_metrics": evaluation_results["metrics"],
+            "test_samples": evaluation_results["test_samples"],
+            "prediction_statistics": evaluation_results["prediction_statistics"],
+            "actual_statistics": evaluation_results["actual_statistics"],
+            "model_type": evaluation_results["model_type"],
             "plot_files": evaluation_results["plot_paths"],
         },
     }

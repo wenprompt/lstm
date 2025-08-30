@@ -804,6 +804,9 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
 
     except Exception as e:
         logger.exception(f"  ❌ Could not generate Dashboard 5: {e}")
+
+
+def main():
     """
     Main function to create all improved visualization dashboards.
     """
@@ -831,8 +834,8 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
 
     logger.info(f"Loaded {len(results_df)} trial results from {RESULTS_CSV_PATH}")
 
-    # Generate 4 IMPROVED, actionable dashboards
-    logger.info("Creating 4 improved, actionable dashboards...")
+    # Generate 5 improved, actionable dashboards
+    logger.info("Creating 5 improved, actionable dashboards...")
 
     create_dashboard1_best_model_recommendations(results_df)
     create_dashboard2_performance_rankings(results_df)
@@ -843,11 +846,6 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
     logger.info(
         "IMPROVED visualization script finished! Generated 5 actionable dashboards in results/plots/hypertuning/"
     )
-    logger.info("")
-    logger.info("NEXT STEPS:")
-    logger.info("1. Review Dashboard 4 for config.yaml updates")
-    logger.info("2. Update your config.yaml with recommended hyperparameters")
-    logger.info("3. Re-run training: uv run python main.py")
     logger.info("")
     logger.info("NEXT STEPS:")
     logger.info("1. Review Dashboard 4 for config.yaml updates")

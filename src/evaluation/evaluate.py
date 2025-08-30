@@ -662,22 +662,32 @@ def evaluate_model(
     # Create visualizations
     plot_paths = evaluator.create_visualizations(save_dir / "plots")
 
-    # Save results
-    results_path = evaluator.save_results(
-        save_dir, {"plot_paths": plot_paths, "model_type": "bidirectional_lstm"}
-    )
-
     # Print summary
     summary = evaluator.get_evaluation_summary()
     print(summary)
 
     logger.info("Model evaluation completed successfully")
 
+    # Return comprehensive evaluation data (no separate JSON file created)
     return {
         "metrics": metrics,
         "predictions": predictions,
         "actuals": actuals,
         "plot_paths": plot_paths,
-        "results_path": results_path,
         "summary": summary,
+        # Include detailed statistics for final_results.json
+        "test_samples": len(predictions),
+        "prediction_statistics": {
+            "mean_prediction": float(np.mean(predictions)),
+            "std_prediction": float(np.std(predictions)),
+            "min_prediction": float(np.min(predictions)),
+            "max_prediction": float(np.max(predictions)),
+        },
+        "actual_statistics": {
+            "mean_actual": float(np.mean(actuals)),
+            "std_actual": float(np.std(actuals)),
+            "min_actual": float(np.min(actuals)),
+            "max_actual": float(np.max(actuals)),
+        },
+        "model_type": "bidirectional_lstm",
     }
