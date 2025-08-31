@@ -13,6 +13,7 @@ dependencies = [
     "pydantic",
     "scipy>=1.16.1",
     "seaborn>=0.13.2",
+    "psutil>=7.0.0,<8.0.0",
 ]
 
 [dependency-groups]
@@ -23,6 +24,7 @@ dev = [
     "ruff>=0.12.8",
     "scikit-learn-stubs>=0.0.3",
     "scipy>=1.16.1",
+    "types-psutil>=7.0.0,<8.0.0",
     "types-pyyaml>=6.0.12.20250822",
     "types-seaborn>=0.13.2.20250809",
 ]

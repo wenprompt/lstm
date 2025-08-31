@@ -11,36 +11,32 @@
       "price_62_m1",
       "Ukraine Concentrate fines",
       "lump premium",
-      "IOCJ Import margin",
       "rebar steel margin ",
-      "indian pellet premium",
       "(IOCJ+SSF)/2-PBF",
       "62 Index",
       "65 Index",
-      "IOCJ Inventory",
       "IOCJ Weekly shipment"
     ],
     "model": {
-      "sequence_length": 10,
-      "hidden_size": 64,
+      "sequence_length": 12,
+      "hidden_size": 8,
       "number_of_layers": 2,
       "dropout_rate": 0.35,
       "bidirectional": true,
-      "layer_norm": true,
-      "input_size": 12
+      "layer_norm": true
     },
     "training": {
       "batch_size": 32,
-      "learning_rate": 0.001,
-      "epochs": 100,
-      "early_stopping_patience": 15,
-      "gradient_clip_norm": 1.0,
+      "learning_rate": 0.0005,
+      "epochs": 70,
+      "early_stopping_patience": 12,
+      "gradient_clip_norm": 0.3,
       "loss_function": "mse",
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.75,
-      "val_ratio": 0.05,
+      "train_ratio": 0.8,
+      "val_ratio": 0.0,
       "test_ratio": 0.2
     },
     "scaling": {
@@ -77,22 +73,37 @@
     }
   },
   "training": {
-    "final_epoch": 32,
-    "total_time_minutes": 0.05490357478459676,
-    "best_val_loss": 1.318146973848343,
-    "final_train_loss": 4.039532757940746,
-    "final_val_loss": 3.3928414583206177,
+    "final_epoch": 38,
+    "total_time_minutes": 0.0517805814743042,
+    "best_val_loss": 4.082430189306086,
+    "final_train_loss": 4.121397972106934,
+    "final_val_loss": 4.121397972106934,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.3908128504371466,
-      "mae": 1.150180697441101,
-      "mse": 1.934360384941101,
-      "directional_accuracy": 50.0,
-      "r_squared": -0.6830394268035889,
-      "mape": 413.049560546875
+      "rmse": 1.0731747634715747,
+      "mae": 0.849004864692688,
+      "mse": 1.1517040729522705,
+      "directional_accuracy": 53.70370370370371,
+      "r_squared": 0.009346425533294678,
+      "mape": 84780.390625,
+      "smape": 172.003173828125
     },
+    "test_samples": 162,
+    "prediction_statistics": {
+      "mean_prediction": -0.027417629957199097,
+      "std_prediction": 0.10539059340953827,
+      "min_prediction": -0.2449125051498413,
+      "max_prediction": 0.17279052734375
+    },
+    "actual_statistics": {
+      "mean_actual": 0.06015646830201149,
+      "std_actual": 1.0782253742218018,
+      "min_actual": -2.7594096660614014,
+      "max_actual": 3.016491174697876
+    },
+    "model_type": "bidirectional_lstm",
     "plot_files": {
       "scatter": "results/plots/actual_vs_predicted_scatter.png",
       "timeseries": "results/plots/timeseries_comparison.png",

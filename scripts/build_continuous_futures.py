@@ -40,8 +40,12 @@ class ContinuousFuturesBuilder:
         with open(self.data_dir / "Raw_FEF_Close.pkl", "rb") as f:
             self.contracts_62 = pickle.load(f)
 
-        logger.info(f"Loaded 65% contracts: {len(self.contracts_65) if self.contracts_65 else 0} periods")
-        logger.info(f"Loaded 62% contracts: {len(self.contracts_62) if self.contracts_62 else 0} periods")
+        logger.info(
+            f"Loaded 65% contracts: {len(self.contracts_65) if self.contracts_65 else 0} periods"
+        )
+        logger.info(
+            f"Loaded 62% contracts: {len(self.contracts_62) if self.contracts_62 else 0} periods"
+        )
 
     def get_m1_contract_for_month(self, year: int, month: int) -> Tuple[int, int]:
         """
@@ -108,7 +112,10 @@ class ContinuousFuturesBuilder:
             series_name: Name for the price series
 
         Returns:
-            DataFrame with continuous series and contract tracking
+            DataFrame with adjusted continuous series, raw prices, and contract tracking:
+            - price_{series_name}: Adjusted continuous price series
+            - raw_price_{series_name}: Raw unadjusted price from original contract
+            - contract_month_{series_name}: Contract period identifier
         """
         logger.info(f"Building continuous series for {series_name}...")
 
@@ -193,14 +200,16 @@ class ContinuousFuturesBuilder:
 
         for date, m1_period in m1_mapping.items():
             if m1_period in adjusted_contracts:
-                contract_data = adjusted_contracts[m1_period]
-                price = contract_data.get(date)
+                # Get both adjusted and raw prices
+                adjusted_price = adjusted_contracts[m1_period].get(date)
+                raw_price = contracts[m1_period].get(date)  # Original unadjusted price
 
-                if not pd.isna(price):
+                if not pd.isna(adjusted_price) and not pd.isna(raw_price):
                     continuous_data.append(
                         {
                             "date": date,
-                            f"price_{series_name}": price,
+                            f"price_{series_name}": adjusted_price,
+                            f"raw_price_{series_name}": raw_price,
                             f"contract_month_{series_name}": str(m1_period),
                         }
                     )

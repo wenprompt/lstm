@@ -113,6 +113,29 @@ uv run python -c "from src.models.model import create_model; print('Model import
 uv run python -c "from src.data.data_loader import DataLoader; print('DataLoader import successful')"
 ```
 
+To run the tuning script:
+
+```bash
+uv run python -m src.tuning.tune_hyperparameters
+```
+
+To run the visualization script (after tuning is complete):
+
+```bash
+uv run python -m src.tuning.visualize_tuning
+```
+
+#### Hyperparameter Tuning Enhancements
+
+**Recent Improvements** (August 2024):
+
+- ✅ **Fixed Critical Data Assignment Bug**: Corrected swapped predictions/actuals in tuning results CSV
+- ✅ **Added Comprehensive Logging**: Tuning logs now saved to `results/logs/hypertuning/` with timestamps
+- ✅ **Evaluation Consistency**: Both main.py and tuning script now use test set for final evaluation
+- ✅ **Consolidated Results**: Eliminated redundant evaluation_results.json, unified in final_results.json
+
+**Data Validation Lesson**: Always verify that variable assignments match their semantic meaning, especially when handling prediction/actual data pairs across different pipeline components.
+
 ### What Happens When You Run `main.py`
 
 When you execute `uv run python main.py`, the complete LSTM pipeline runs automatically:
@@ -229,8 +252,10 @@ results/models/final_model.pt  # Final epoch model weights
 **Evaluation Results**
 
 ```
-results/evaluation_results.json     # All metrics in JSON format
-results/final_results.json          # Complete pipeline results
+results/final_results.json          # Complete pipeline results (consolidated)
+results/logs/training/              # Main pipeline training logs
+results/logs/hypertuning/           # Hyperparameter tuning logs  
+results/tuning_results.csv          # Comprehensive tuning results with predictions
 ```
 
 **Visualization Plots**
@@ -367,6 +392,8 @@ Edit `config.yaml` to modify:
 - **CUDA errors**: Set `device.use_cuda: false` in config.yaml for CPU-only
 - **Memory issues**: Reduce `batch_size` or `sequence_length` in config.yaml
 - **Poor performance**: Check feature scaling, try different `hidden_size`
+- **Visualization data mismatch**: If plots show swapped actual/predicted patterns, re-run tuning script to regenerate CSV with correct column assignments
+- **Dashboard inconsistencies**: Ensure all evaluation components use same test set and data flow patterns
 
 #### Monitoring Training
 
@@ -377,13 +404,15 @@ Edit `config.yaml` to modify:
 
 #### Performance Analysis Locations
 
-- **Training metrics**: Final console output + training logs
-- **Test performance**: `results/evaluation_results.json`
+- **Training metrics**: Final console output + `results/logs/training/`
+- **Test performance**: `results/final_results.json` (consolidated metrics)
+- **Tuning analysis**: `results/tuning_results.csv` + `results/logs/hypertuning/`
 - **Visual analysis**: 4 plots in `results/plots/`
   - `actual_vs_predicted_scatter.png` - Overall prediction quality
   - `timeseries_comparison.png` - Temporal prediction patterns
   - `residuals_analysis.png` - Error distribution analysis
   - `distribution_comparison.png` - Statistical comparison
+- **Tuning dashboards**: 5 comprehensive dashboards in `results/plots/hypertuning/`
 
 ### File-by-File Responsibilities
 
@@ -539,38 +568,38 @@ The project now uses configurable thresholds for all performance assessments. Yo
 # Training assessment thresholds
 thresholds:
   # Performance assessment (validation loss improvement)
-  plateau_tolerance: 0.001  # Minimum improvement to avoid "PLATEAU" status
-  
+  plateau_tolerance: 0.001 # Minimum improvement to avoid "PLATEAU" status
+
   # Speed assessment (seconds per epoch)
-  fast_epoch_time: 10    # Below this = "FAST"
-  medium_epoch_time: 30  # Below this = "MEDIUM", above = "SLOW"
-  
+  fast_epoch_time: 10 # Below this = "FAST"
+  medium_epoch_time: 30 # Below this = "MEDIUM", above = "SLOW"
+
   # Total time assessment (seconds)
-  quick_training_time: 300   # 5 minutes - Below this = "QUICK"
-  moderate_training_time: 1800  # 30 minutes - Below this = "MODERATE", above = "LENGTHY"
-  
+  quick_training_time: 300 # 5 minutes - Below this = "QUICK"
+  moderate_training_time: 1800 # 30 minutes - Below this = "MODERATE", above = "LENGTHY"
+
   # Model complexity thresholds (parameter count)
-  simple_model_params: 10000    # Below this = "SIMPLE"
+  simple_model_params: 10000 # Below this = "SIMPLE"
   moderate_model_params: 100000 # Below this = "MODERATE", above = "COMPLEX"
-  
+
   # Evaluation quality thresholds
-  excellent_accuracy: 60  # Directional accuracy >= this = "EXCELLENT"
-  good_accuracy: 55      # Directional accuracy >= this = "GOOD"
-  fair_accuracy: 50      # Directional accuracy >= this = "FAIR", below = "POOR"
-  
-  strong_correlation: 0.5    # R² >= this = "STRONG"
-  moderate_correlation: 0.2  # R² >= this = "MODERATE", below = "WEAK"
+  excellent_accuracy: 60 # Directional accuracy >= this = "EXCELLENT"
+  good_accuracy: 55 # Directional accuracy >= this = "GOOD"
+  fair_accuracy: 50 # Directional accuracy >= this = "FAIR", below = "POOR"
+
+  strong_correlation: 0.5 # R² >= this = "STRONG"
+  moderate_correlation: 0.2 # R² >= this = "MODERATE", below = "WEAK"
 ```
 
 **How to Tweak Thresholds for Different Outcomes:**
 
-| **Want More...** | **Adjust These Thresholds** | **Example Changes** |
-|------------------|------------------------------|---------------------|
-| **Stricter "EXCELLENT" rating** | Increase `excellent_accuracy` | `60 → 65` (need 65% accuracy for "EXCELLENT") |
-| **More lenient quality ratings** | Decrease accuracy thresholds | `excellent: 60→55, good: 55→50, fair: 50→45` |
-| **Faster training classification** | Increase speed thresholds | `fast_epoch_time: 10→20` (20s still "FAST") |
-| **Stricter model complexity** | Decrease parameter thresholds | `simple_model_params: 10000→5000` |
-| **Higher correlation standards** | Increase correlation thresholds | `strong_correlation: 0.5→0.7` |
+| **Want More...**                   | **Adjust These Thresholds**     | **Example Changes**                           |
+| ---------------------------------- | ------------------------------- | --------------------------------------------- |
+| **Stricter "EXCELLENT" rating**    | Increase `excellent_accuracy`   | `60 → 65` (need 65% accuracy for "EXCELLENT") |
+| **More lenient quality ratings**   | Decrease accuracy thresholds    | `excellent: 60→55, good: 55→50, fair: 50→45`  |
+| **Faster training classification** | Increase speed thresholds       | `fast_epoch_time: 10→20` (20s still "FAST")   |
+| **Stricter model complexity**      | Decrease parameter thresholds   | `simple_model_params: 10000→5000`             |
+| **Higher correlation standards**   | Increase correlation thresholds | `strong_correlation: 0.5→0.7`                 |
 
 **Practical Tuning Examples:**
 
@@ -580,7 +609,7 @@ thresholds:
   excellent_accuracy: 65  # Need 65% for trading confidence
   good_accuracy: 60      # 60% minimum for trading signals
   fair_accuracy: 55      # 55% minimum for trend analysis
-  
+
 # For research experiments (more lenient)
 thresholds:
   excellent_accuracy: 55  # 55% considered excellent for research
@@ -596,18 +625,18 @@ You can also configure which features to use for training/testing by modifying t
 # Feature selection - configure which features to use for training/testing
 # Available features from consolidated dataset:
 features:
-  - "price_65_m1"              # Continuous M+1 65% iron ore futures price
-  - "price_62_m1"              # Continuous M+1 62% iron ore futures price  
+  - "price_65_m1" # Continuous M+1 65% iron ore futures price
+  - "price_62_m1" # Continuous M+1 62% iron ore futures price
   - "Ukraine Concentrate fines" # Ukraine concentrate fines pricing
-  - "lump premium"             # Iron ore lump premium
-  - "IOCJ Import margin"       # IOCJ import margin
-  - "rebar steel margin "      # Rebar steel margin (note: trailing space in original data)
-  - "indian pellet premium"    # Indian pellet premium
-  - "(IOCJ+SSF)/2-PBF"        # Combined index calculation
-  - "62 Index"                 # 62% grade index
-  - "65 Index"                 # 65% grade index
-  - "IOCJ Inventory"           # IOCJ inventory levels (weekly, forward-filled)
-  - "IOCJ Weekly shipment"     # IOCJ weekly shipment volumes (weekly, forward-filled)
+  - "lump premium" # Iron ore lump premium
+  - "IOCJ Import margin" # IOCJ import margin
+  - "rebar steel margin " # Rebar steel margin (note: trailing space in original data)
+  - "indian pellet premium" # Indian pellet premium
+  - "(IOCJ+SSF)/2-PBF" # Combined index calculation
+  - "62 Index" # 62% grade index
+  - "65 Index" # 65% grade index
+  - "IOCJ Inventory" # IOCJ inventory levels (weekly, forward-filled)
+  - "IOCJ Weekly shipment" # IOCJ weekly shipment volumes (weekly, forward-filled)
 ```
 
 **Usage Examples:**
@@ -618,7 +647,7 @@ features:
   - "price_65_m1"
   - "price_62_m1"
 
-# Use price and index features (4 features)  
+# Use price and index features (4 features)
 features:
   - "price_65_m1"
   - "price_62_m1"
@@ -631,16 +660,45 @@ features:
 ```
 
 **Key Benefits:**
+
 - **Experiment with different feature combinations** to find optimal predictive signals
 - **Reduce model complexity** by removing less relevant features
 - **Focus on domain-specific features** (e.g., only futures prices, only indices)
 - **Test feature importance** by comparing models with different feature sets
 
 **Technical Notes:**
+
 - The Y target variable is automatically preserved regardless of feature selection
 - Model input size is dynamically calculated based on selected features
 - Feature scaling is applied only to selected features
 - All selected features must exist in the consolidated dataset
+
+#### Data Pipeline Validation Best Practices
+
+Based on recent debugging experience, always verify:
+
+1. **Variable Assignment Consistency**: Ensure function return values match variable names semantically
+   ```python
+   # ✅ CORRECT: Variable names match return order
+   predictions, actual_values = evaluator.predict(loader)
+   
+   # ❌ WRONG: Swapped variables create data labeling errors  
+   actual_values, predictions = evaluator.predict(loader)
+   ```
+
+2. **Cross-Component Data Flow**: Verify data consistency between main pipeline and auxiliary scripts
+   - Main evaluation uses `evaluate_model()` → correct data flow
+   - Tuning evaluation should use same patterns for consistency
+   - All CSV outputs should have columns that match their actual content
+
+3. **Visualization Data Validation**: Check that volatile data (actuals) and smooth data (predictions) are correctly labeled in plots
+
+4. **Return Order Documentation**: Always document and follow consistent return patterns
+   ```python
+   def predict(self, loader) -> Tuple[np.ndarray, np.ndarray]:
+       """Returns: (predictions, actuals) - always this order"""
+       return self.predictions, self.actuals
+   ```
 
 ### Environment Variables and Settings
 
