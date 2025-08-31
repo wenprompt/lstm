@@ -220,8 +220,8 @@ PERFORMANCE:
 
         logger.info(f"  ✅ Dashboard 1 saved to {output_path}")
 
-    except Exception as e:
-        logger.error(f"  ❌ Could not generate Dashboard 1: {e}")
+    except Exception:
+        logger.exception("  ❌ Could not generate Dashboard 1")
 
 
 def create_dashboard2_performance_rankings(results_df):
@@ -421,8 +421,8 @@ This indicates good model discrimination!
 
         logger.info(f"  ✅ Dashboard 2 saved to {output_path}")
 
-    except Exception as e:
-        logger.error(f"  ❌ Could not generate Dashboard 2: {e}")
+    except Exception:
+        logger.exception("  ❌ Could not generate Dashboard 2")
 
 
 def create_dashboard3_model_comparison_table(results_df):
@@ -564,8 +564,8 @@ RECOMMENDATION: The patterns above represent the most successful hyperparameter 
 
         logger.info(f"  ✅ Dashboard 3 saved to {output_path}")
 
-    except Exception as e:
-        logger.error(f"  ❌ Could not generate Dashboard 3: {e}")
+    except Exception:
+        logger.exception("  ❌ Could not generate Dashboard 3")
 
 
 def create_dashboard4_final_recommendations(results_df):
@@ -735,8 +735,8 @@ Next Steps After Success:
 
         logger.info(f"  ✅ Dashboard 4 saved to {output_path}")
 
-    except Exception as e:
-        logger.error(f"  ❌ Could not generate Dashboard 4: {e}")
+    except Exception:
+        logger.exception("  ❌ Could not generate Dashboard 4")
 
 def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
     """
@@ -802,8 +802,8 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
 
         logger.info(f"  ✅ Dashboard 5 saved to {output_path}")
 
-    except Exception as e:
-        logger.exception(f"  ❌ Could not generate Dashboard 5: {e}")
+    except Exception:
+        logger.exception("  ❌ Could not generate Dashboard 5")
 
 
 def main():
@@ -828,8 +828,8 @@ def main():
         if results_df.empty:
             logger.warning("Tuning results file is empty. No visualizations to create.")
             return
-    except Exception as e:
-        logger.error(f"Failed to read or parse {RESULTS_CSV_PATH}: {e}")
+    except Exception:
+        logger.exception(f"Failed to read or parse {RESULTS_CSV_PATH}")
         return
 
     logger.info(f"Loaded {len(results_df)} trial results from {RESULTS_CSV_PATH}")

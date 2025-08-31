@@ -158,9 +158,9 @@ class ConsolidatedFeaturesBuilder:
         # Filter to master timeline
         weekly_aligned = weekly_daily.reindex(self.master_timeline)
 
-        # Count forward-filled values
-        original_points = len(weekly_df.dropna())
-        filled_points = len(weekly_aligned.dropna())
+        # Count observation rows before/after alignment
+        original_points = len(weekly_df)
+        filled_points = len(weekly_aligned)
         logger.info(
             f"Forward-fill applied: {original_points} original → {filled_points} daily observations"
         )

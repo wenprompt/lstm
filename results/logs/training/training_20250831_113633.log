@@ -1,0 +1,1280 @@
+2025-08-31 11:36:33,208 - __main__ - INFO - ================================================================================
+2025-08-31 11:36:33,208 - __main__ - INFO - LSTM IRON ORE PRICE FORECASTING PIPELINE
+2025-08-31 11:36:33,208 - __main__ - INFO - ================================================================================
+2025-08-31 11:36:33,208 - __main__ - INFO - System Information:
+2025-08-31 11:36:33,210 - __main__ - INFO -   Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39
+2025-08-31 11:36:33,210 - __main__ - INFO -   Python version: 3.11.13
+2025-08-31 11:36:33,210 - __main__ - INFO -   PyTorch version: 2.8.0+cu128
+2025-08-31 11:36:33,210 - __main__ - INFO - Hardware Information:
+2025-08-31 11:36:33,211 - __main__ - INFO -   CPU: 8 cores (16 logical)
+2025-08-31 11:36:33,211 - __main__ - INFO -   RAM: 30.8 GB
+2025-08-31 11:36:33,277 - __main__ - INFO -   GPU: NVIDIA GeForce RTX 4080 SUPER
+2025-08-31 11:36:33,277 - __main__ - INFO -   GPU Memory: 16.0 GB
+2025-08-31 11:36:33,277 - __main__ - INFO -   CUDA Version: 12.8
+2025-08-31 11:36:33,277 - __main__ - INFO -   Started at: 2025-08-31 11:36:33
+2025-08-31 11:36:33,277 - __main__ - INFO - ================================================================================
+
+2025-08-31 11:36:33,277 - __main__ - INFO - Loading configuration from config.yaml
+2025-08-31 11:36:33,280 - __main__ - INFO - Configuration loaded successfully
+2025-08-31 11:36:33,280 - __main__ - INFO - Configuration Summary:
+2025-08-31 11:36:33,280 - __main__ - INFO -   Model Architecture:
+2025-08-31 11:36:33,280 - __main__ - INFO -     Hidden size: 8
+2025-08-31 11:36:33,280 - __main__ - INFO -     Layers: 1
+2025-08-31 11:36:33,280 - __main__ - INFO -     Sequence length: 12
+2025-08-31 11:36:33,281 - __main__ - INFO -     Bidirectional: True
+2025-08-31 11:36:33,281 - __main__ - INFO -     Dropout rate: 0.2
+2025-08-31 11:36:33,281 - __main__ - INFO -   Training Parameters:
+2025-08-31 11:36:33,281 - __main__ - INFO -     Max epochs: 70
+2025-08-31 11:36:33,281 - __main__ - INFO -     Batch size: 32
+2025-08-31 11:36:33,281 - __main__ - INFO -     Learning rate: 0.001
+2025-08-31 11:36:33,281 - __main__ - INFO -     Early stopping patience: 12
+2025-08-31 11:36:33,281 - __main__ - INFO -   Data Configuration:
+2025-08-31 11:36:33,281 - __main__ - INFO -     Train ratio: 0.8
+2025-08-31 11:36:33,281 - __main__ - INFO -     Val ratio: 0.0
+2025-08-31 11:36:33,281 - __main__ - INFO -     Test ratio: 0.2
+2025-08-31 11:36:33,281 - __main__ - INFO -     Selected features: 9
+2025-08-31 11:36:33,281 - __main__ - INFO - Configuration loaded in 0.00 seconds
+
+2025-08-31 11:36:33,281 - __main__ - INFO - Setting up output directories...
+2025-08-31 11:36:33,281 - __main__ - INFO - Output directories structure:
+2025-08-31 11:36:33,281 - __main__ - INFO -   Base directory: /home/wh_wang/wsl_projects/lstm/results
+2025-08-31 11:36:33,282 - __main__ - INFO -     models/: /home/wh_wang/wsl_projects/lstm/results/models
+2025-08-31 11:36:33,282 - __main__ - INFO -     plots/: /home/wh_wang/wsl_projects/lstm/results/plots
+2025-08-31 11:36:33,282 - __main__ - INFO -     logs/: /home/wh_wang/wsl_projects/lstm/results/logs
+2025-08-31 11:36:33,282 - __main__ - INFO -       logs/training/: /home/wh_wang/wsl_projects/lstm/results/logs/training
+2025-08-31 11:36:33,282 - __main__ - INFO -       logs/evaluation/: /home/wh_wang/wsl_projects/lstm/results/logs/evaluation
+2025-08-31 11:36:33,282 - __main__ - INFO -       logs/hypertuning/: /home/wh_wang/wsl_projects/lstm/results/logs/hypertuning
+2025-08-31 11:36:33,282 - __main__ - INFO - Disk space available: 888.6 GB
+2025-08-31 11:36:33,282 - __main__ - INFO - Directory setup completed in 0.00 seconds
+
+2025-08-31 11:36:33,282 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,282 - __main__ - INFO - STEP 1: DATA LOADING AND PREPROCESSING
+2025-08-31 11:36:33,282 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,283 - src.data.data_loader - INFO - Loading consolidated features dataset...
+2025-08-31 11:36:33,284 - src.data.data_loader - INFO - Data loaded successfully: (868, 13) (observations × features)
+2025-08-31 11:36:33,284 - src.data.data_loader - INFO - Date range: 2022-03-30 to 2025-08-11
+2025-08-31 11:36:33,284 - src.data.data_loader - INFO - Time span: 1230 days
+2025-08-31 11:36:33,285 - src.data.data_loader - INFO - Data quality overview:
+2025-08-31 11:36:33,285 - src.data.data_loader - INFO -   Total values: 11,284
+2025-08-31 11:36:33,285 - src.data.data_loader - INFO -   Missing values: 0 (0.00%)
+2025-08-31 11:36:33,285 - src.data.data_loader - INFO -   ✓ No missing values detected
+2025-08-31 11:36:33,285 - src.data.data_loader - INFO - Target variable (Y) statistics:
+2025-08-31 11:36:33,286 - src.data.data_loader - INFO -   Mean: -0.022193, Std: 1.888507
+2025-08-31 11:36:33,286 - src.data.data_loader - INFO -   Range: [-8.806481, 6.850038]
+2025-08-31 11:36:33,286 - src.data.data_loader - INFO - Creating chronological data splits...
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO - Chronological data splits created:
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO -   Train: 694 samples ( 80.0%) [2022-03-30 to 2024-12-06]
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO -   Val:   0 samples (  0.0%) [validation disabled]
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO -   Test:  174 samples ( 20.0%) [2024-12-09 to 2025-08-11]
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO - Target variable (Y) statistics by split:
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO -   Train Y: mean=-0.036650, std=2.042711
+2025-08-31 11:36:33,287 - src.data.data_loader - INFO -   Test Y:  mean=0.035467, std=1.074497
+2025-08-31 11:36:33,288 - src.data.data_loader - INFO - 📊 Data Split: Using 2.7 years for training, 868 total daily observations (validation disabled)
+2025-08-31 11:36:33,288 - src.data.data_loader - INFO - Applying configurable feature selection...
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO - Feature selection applied:
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO -   Available features: 12 (['price_65_m1', 'price_62_m1', 'Ukraine Concentrate fines', 'lump premium', 'IOCJ Import margin', 'rebar steel margin ', 'indian pellet premium', '(IOCJ+SSF)/2-PBF', '62 Index', '65 Index', 'IOCJ Inventory', 'IOCJ Weekly shipment'])
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO -   Selected features: 9 (['price_65_m1', 'price_62_m1', 'Ukraine Concentrate fines', 'lump premium', 'rebar steel margin ', '(IOCJ+SSF)/2-PBF', '62 Index', '65 Index', 'IOCJ Weekly shipment'])
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO -   Filtered dataset shape: 9 features + Y target
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO - 🎯 Feature Focus: Using 9/12 features (removed 3 features to focus model on most relevant signals)
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO - Applying feature scaling...
+2025-08-31 11:36:33,289 - src.data.data_loader - INFO - Scaling 9 features: ['price_65_m1', 'price_62_m1', 'Ukraine Concentrate fines', 'lump premium', 'rebar steel margin ', '(IOCJ+SSF)/2-PBF', '62 Index', '65 Index', 'IOCJ Weekly shipment']
+2025-08-31 11:36:33,295 - src.data.data_loader - INFO - Feature scaling completed
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO - Feature scaling transformation completed:
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO -   Original range: [-248.000000, 1350.000000]
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO -   Scaled range:   [0.000, 1.000]
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO - Scaling parameters (MinMaxScaler):
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO -   Data min: [-248.000000, 778.000000]
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO -   Scale factors: [0.001337, 3.100775]
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO -   Target (Y) scaling: unchanged (correct)
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO - 🔧 Features Prepared: All 9 features normalized to 0-1 range for optimal neural network training
+2025-08-31 11:36:33,297 - src.data.data_loader - INFO - 
+============================================================
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO - DATA PREPROCESSING PIPELINE COMPLETED SUCCESSFULLY
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO - ============================================================
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO - Final dataset specifications:
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO -   Features: 9 (selected from available features)
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO -   Samples: train=694, val=0, test=174
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO -   Scaling: enabled
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO -   Data quality: ready for LSTM training
+2025-08-31 11:36:33,298 - src.data.data_loader - INFO - ============================================================
+
+2025-08-31 11:36:33,298 - __main__ - INFO - Training set: 694 samples
+2025-08-31 11:36:33,298 - __main__ - INFO - Validation set: 0 samples
+2025-08-31 11:36:33,298 - __main__ - INFO - Test set: 174 samples
+2025-08-31 11:36:33,298 - __main__ - INFO - Total samples: 868
+2025-08-31 11:36:33,298 - __main__ - INFO - Features: 9
+2025-08-31 11:36:33,298 - __main__ - INFO - 
+⏱️  Step 1 (Data Loading & Preprocessing) completed in 0.0 seconds
+
+2025-08-31 11:36:33,299 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,299 - __main__ - INFO - STEP 2: PYTORCH DATASET CREATION
+2025-08-31 11:36:33,299 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,299 - src.data.dataset - INFO - Creating PyTorch DataLoaders...
+2025-08-31 11:36:33,299 - src.data.dataset - INFO - Dataset initialized: 682 sequences
+2025-08-31 11:36:33,299 - src.data.dataset - INFO - Feature shape: (694, 9)
+2025-08-31 11:36:33,299 - src.data.dataset - INFO - Target shape: (694,)
+2025-08-31 11:36:33,299 - src.data.dataset - INFO - Sequence length: 12
+2025-08-31 11:36:33,300 - src.data.dataset - INFO - Dataset initialized: 0 sequences
+2025-08-31 11:36:33,300 - src.data.dataset - INFO - Feature shape: (0, 9)
+2025-08-31 11:36:33,300 - src.data.dataset - INFO - Target shape: (0,)
+2025-08-31 11:36:33,300 - src.data.dataset - INFO - Sequence length: 12
+2025-08-31 11:36:33,300 - src.data.dataset - INFO - Dataset initialized: 162 sequences
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Feature shape: (174, 9)
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Target shape: (174,)
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Sequence length: 12
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Train DataLoader: 22 batches (682 sequences)
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Val DataLoader: 0 batches (0 sequences, validation disabled)
+2025-08-31 11:36:33,301 - src.data.dataset - INFO - Test DataLoader: 6 batches (162 sequences)
+2025-08-31 11:36:33,305 - __main__ - INFO - DataLoader Information:
+2025-08-31 11:36:33,305 - __main__ - INFO -   Train: 22 batches, feature shape: [32, 12, 9]
+2025-08-31 11:36:33,306 - __main__ - INFO -   Val: 0 batches (validation disabled)
+2025-08-31 11:36:33,306 - __main__ - INFO -   Test: 6 batches, feature shape: [32, 12, 9]
+2025-08-31 11:36:33,306 - __main__ - INFO - 
+⏱️  Step 2 (Dataset Creation) completed in 0.0 seconds
+
+2025-08-31 11:36:33,306 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,306 - __main__ - INFO - STEP 3: MODEL CREATION AND TRAINING
+2025-08-31 11:36:33,306 - __main__ - INFO - ============================================================
+2025-08-31 11:36:33,307 - src.models.model - INFO - Creating LSTM model from configuration...
+2025-08-31 11:36:33,309 - src.models.model - INFO - Dynamic input size calculated: 9 features
+2025-08-31 11:36:33,309 - src.models.model - INFO - Initializing LSTM model with detailed architecture:
+2025-08-31 11:36:33,309 - src.models.model - INFO -   Input features: 9
+2025-08-31 11:36:33,309 - src.models.model - INFO -   Hidden units per direction: 8
+2025-08-31 11:36:33,309 - src.models.model - INFO -   Number of LSTM layers: 1
+2025-08-31 11:36:33,310 - src.models.model - INFO -   Bidirectional processing: True (2x hidden output)
+2025-08-31 11:36:33,310 - src.models.model - INFO -   Dropout rate: 0.2 (inter-layer + post-LSTM)
+2025-08-31 11:36:33,310 - src.models.model - INFO -   Layer normalization: True (enabled for stability)
+2025-08-31 11:36:33,310 - src.models.model - INFO -   LSTM output dimensions: 16 (8 × 2)
+2025-08-31 11:36:33,310 - src.models.model - INFO -   Final prediction layer: 16 → 1 (regression output)
+2025-08-31 11:36:33,315 - src.models.model - INFO - Model weights initialized with industry-standard schemes:
+2025-08-31 11:36:33,315 - src.models.model - INFO -   LSTM input-to-hidden: Xavier uniform (balanced variance)
+2025-08-31 11:36:33,316 - src.models.model - INFO -   LSTM hidden-to-hidden: Orthogonal (stable gradients)
+2025-08-31 11:36:33,316 - src.models.model - INFO -   LSTM biases: Zero init except forget gate = 1.0 (prevent vanishing)
+2025-08-31 11:36:33,316 - src.models.model - INFO -   Fully connected: Xavier uniform (balanced variance)
+2025-08-31 11:36:33,317 - src.models.model - INFO -   Layer normalization: Default initialization (weight=1, bias=0)
+2025-08-31 11:36:33,317 - src.models.model - INFO - Initialization benefits:
+2025-08-31 11:36:33,318 - src.models.model - INFO -   • Prevents vanishing/exploding gradients
+2025-08-31 11:36:33,318 - src.models.model - INFO -   • Maintains activation variance across layers
+2025-08-31 11:36:33,319 - src.models.model - INFO -   • Forget gate bias=1.0 enables better long-term memory
+2025-08-31 11:36:33,319 - src.models.model - INFO -   • Orthogonal recurrent weights preserve gradient flow
+2025-08-31 11:36:33,319 - src.models.model - INFO - Model parameter breakdown:
+2025-08-31 11:36:33,319 - src.models.model - INFO -   LSTM parameters: 1,216 (96.1%)
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Fully connected: 17 (1.3%)
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Layer norm: 32 (2.5%)
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Total parameters: 1,265
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Estimated model size: 0.0MB (float32)
+2025-08-31 11:36:33,319 - src.models.model - INFO - Model architecture summary:
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Input: (batch, 12, 9)
+2025-08-31 11:36:33,319 - src.models.model - INFO -   LSTM output: (batch, 12, 16)
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Final output: (batch, 1) - single prediction per sequence
+2025-08-31 11:36:33,319 - src.models.model - INFO - Model created successfully:
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Architecture: Bidirectional LSTM
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Input features: 9
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Total parameters: 1,265
+2025-08-31 11:36:33,319 - src.models.model - INFO -   Trainable parameters: 1,265
+2025-08-31 11:36:33,319 - src.models.model - INFO - 🧠 Neural Network: SIMPLE model with 1K parameters, designed to learn iron ore price patterns
+2025-08-31 11:36:33,319 - __main__ - INFO - Model Architecture:
+2025-08-31 11:36:33,319 - __main__ - INFO - ==================================================
+2025-08-31 11:36:33,319 - __main__ - INFO - LSTM MODEL SUMMARY
+2025-08-31 11:36:33,319 - __main__ - INFO - ==================================================
+2025-08-31 11:36:33,319 - __main__ - INFO - Architecture: Bidirectional LSTM
+2025-08-31 11:36:33,320 - __main__ - INFO - Input Features: 9
+2025-08-31 11:36:33,320 - __main__ - INFO - Hidden Size: 8
+2025-08-31 11:36:33,320 - __main__ - INFO - Layers: 1
+2025-08-31 11:36:33,320 - __main__ - INFO - Dropout: 0.20
+2025-08-31 11:36:33,320 - __main__ - INFO - Layer Norm: True
+2025-08-31 11:36:33,320 - __main__ - INFO - 
+2025-08-31 11:36:33,320 - __main__ - INFO - Parameter Count:
+2025-08-31 11:36:33,320 - __main__ - INFO - - Total: 1,265
+2025-08-31 11:36:33,320 - __main__ - INFO - - Trainable: 1,265
+2025-08-31 11:36:33,320 - __main__ - INFO - - LSTM: 1,216
+2025-08-31 11:36:33,320 - __main__ - INFO - - FC: 17
+2025-08-31 11:36:33,320 - __main__ - INFO - ==================================================
+2025-08-31 11:36:33,320 - src.training.train - INFO - Creating LSTM trainer...
+2025-08-31 11:36:34,146 - src.training.train - INFO - Early stopping initialized: patience=12, min_delta=0.0
+2025-08-31 11:36:34,146 - src.training.train - INFO -   GPU: NVIDIA GeForce RTX 4080 SUPER (16.0GB)
+2025-08-31 11:36:34,146 - src.training.train - INFO - Trainer initialized:
+2025-08-31 11:36:34,146 - src.training.train - INFO -   Device: cuda
+2025-08-31 11:36:34,146 - src.training.train - INFO -   Learning rate: 0.001
+2025-08-31 11:36:34,146 - src.training.train - INFO -   Max epochs: 70
+2025-08-31 11:36:34,147 - src.training.train - INFO -   Gradient clip norm: 0.3
+2025-08-31 11:36:34,147 - src.training.train - INFO -   Early stopping patience: 12
+2025-08-31 11:36:34,147 - src.training.train - INFO -   Model parameters: 1,265 total, 1,265 trainable
+2025-08-31 11:36:34,147 - src.training.train - INFO - Trainer created successfully
+2025-08-31 11:36:34,147 - __main__ - INFO - Starting training pipeline...
+2025-08-31 11:36:34,147 - src.training.train - INFO - Starting LSTM model training...
+2025-08-31 11:36:34,147 - src.training.train - INFO - Training samples: 682
+2025-08-31 11:36:34,147 - src.training.train - INFO - Validation samples: 0 (validation disabled)
+2025-08-31 11:36:34,147 - src.training.train - INFO - Batch size: 32
+2025-08-31 11:36:34,147 - src.training.train - INFO - Epoch 1/70 - Training Phase
+2025-08-31 11:36:34,575 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.481248 | Avg Loss: 5.481248 | Progress:   4.5%
+2025-08-31 11:36:34,589 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.250348 | Avg Loss: 4.812464 | Progress:  27.3%
+2025-08-31 11:36:34,600 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.857943 | Avg Loss: 4.647607 | Progress:  50.0%
+2025-08-31 11:36:34,611 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.487965 | Avg Loss: 4.733866 | Progress:  72.7%
+2025-08-31 11:36:34,624 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.581201 | Avg Loss: 4.939268 | Progress:  95.5%
+2025-08-31 11:36:34,626 - src.training.train - INFO -     Batch  22/ 22 | Loss: 1.482972 | Avg Loss: 4.782164 | Progress: 100.0%
+2025-08-31 11:36:34,626 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,626 - src.training.train - INFO -       Loss range: 1.482972 to 8.573709
+2025-08-31 11:36:34,626 - src.training.train - INFO -       Gradient norms: avg=6.6591, max=18.9339
+2025-08-31 11:36:34,627 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,627 - src.training.train - INFO - Epoch 1/70 Complete [1.4% progress]:
+2025-08-31 11:36:34,627 - src.training.train - INFO -   Train Loss: 4.782164 (first epoch)
+2025-08-31 11:36:34,627 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,627 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,627 - src.training.train - INFO -   Time:       0.48s (est. 33s remaining)
+2025-08-31 11:36:34,627 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,628 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,628 - src.training.train - INFO -   📊 Summary: Model performance is TRAINING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,632 - src.training.train - INFO - Epoch 2/70 - Training Phase
+2025-08-31 11:36:34,634 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.972229 | Avg Loss: 5.972229 | Progress:   4.5%
+2025-08-31 11:36:34,645 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.113848 | Avg Loss: 4.865558 | Progress:  27.3%
+2025-08-31 11:36:34,658 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.327294 | Avg Loss: 4.950641 | Progress:  50.0%
+2025-08-31 11:36:34,669 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.936685 | Avg Loss: 4.743156 | Progress:  72.7%
+2025-08-31 11:36:34,684 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.878890 | Avg Loss: 4.479425 | Progress:  95.5%
+2025-08-31 11:36:34,687 - src.training.train - INFO -     Batch  22/ 22 | Loss: 6.425749 | Avg Loss: 4.567894 | Progress: 100.0%
+2025-08-31 11:36:34,687 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,687 - src.training.train - INFO -       Loss range: 1.987249 to 7.895796
+2025-08-31 11:36:34,687 - src.training.train - INFO -       Gradient norms: avg=5.7508, max=12.5527
+2025-08-31 11:36:34,687 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,687 - src.training.train - INFO - Epoch 2/70 Complete [2.9% progress]:
+2025-08-31 11:36:34,687 - src.training.train - INFO -   Train Loss: 4.567894 (-0.214270)
+2025-08-31 11:36:34,687 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,687 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,687 - src.training.train - INFO -   Time:       0.06s (est. 4s remaining)
+2025-08-31 11:36:34,687 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,688 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,688 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,692 - src.training.train - INFO - Epoch 3/70 - Training Phase
+2025-08-31 11:36:34,695 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.247824 | Avg Loss: 4.247824 | Progress:   4.5%
+2025-08-31 11:36:34,706 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.883894 | Avg Loss: 4.310040 | Progress:  27.3%
+2025-08-31 11:36:34,717 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.995512 | Avg Loss: 4.671296 | Progress:  50.0%
+2025-08-31 11:36:34,729 - src.training.train - INFO -     Batch  16/ 22 | Loss: 1.415877 | Avg Loss: 4.396982 | Progress:  72.7%
+2025-08-31 11:36:34,741 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.868217 | Avg Loss: 4.453894 | Progress:  95.5%
+2025-08-31 11:36:34,743 - src.training.train - INFO -     Batch  22/ 22 | Loss: 4.846531 | Avg Loss: 4.471741 | Progress: 100.0%
+2025-08-31 11:36:34,743 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,743 - src.training.train - INFO -       Loss range: 1.415877 to 6.868217
+2025-08-31 11:36:34,743 - src.training.train - INFO -       Gradient norms: avg=4.5354, max=11.5854
+2025-08-31 11:36:34,743 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,743 - src.training.train - INFO - Epoch 3/70 Complete [4.3% progress]:
+2025-08-31 11:36:34,743 - src.training.train - INFO -   Train Loss: 4.471741 (-0.096153)
+2025-08-31 11:36:34,744 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,744 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,744 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:34,744 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,744 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,744 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,747 - src.training.train - INFO - Epoch 4/70 - Training Phase
+2025-08-31 11:36:34,750 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.465576 | Avg Loss: 3.465576 | Progress:   4.5%
+2025-08-31 11:36:34,762 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.619860 | Avg Loss: 4.211283 | Progress:  27.3%
+2025-08-31 11:36:34,773 - src.training.train - INFO -     Batch  11/ 22 | Loss: 6.451952 | Avg Loss: 4.660505 | Progress:  50.0%
+2025-08-31 11:36:34,784 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.434532 | Avg Loss: 4.449732 | Progress:  72.7%
+2025-08-31 11:36:34,799 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.930787 | Avg Loss: 4.496851 | Progress:  95.5%
+2025-08-31 11:36:34,801 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.749749 | Avg Loss: 4.462892 | Progress: 100.0%
+2025-08-31 11:36:34,801 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,801 - src.training.train - INFO -       Loss range: 2.582089 to 7.412982
+2025-08-31 11:36:34,802 - src.training.train - INFO -       Gradient norms: avg=4.4677, max=9.0607
+2025-08-31 11:36:34,802 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,802 - src.training.train - INFO - Epoch 4/70 Complete [5.7% progress]:
+2025-08-31 11:36:34,802 - src.training.train - INFO -   Train Loss: 4.462892 (-0.008849)
+2025-08-31 11:36:34,802 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,802 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,802 - src.training.train - INFO -   Time:       0.05s (est. 4s remaining)
+2025-08-31 11:36:34,802 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,803 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,803 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,806 - src.training.train - INFO - Epoch 5/70 - Training Phase
+2025-08-31 11:36:34,809 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.923294 | Avg Loss: 3.923294 | Progress:   4.5%
+2025-08-31 11:36:34,821 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.703430 | Avg Loss: 4.766479 | Progress:  27.3%
+2025-08-31 11:36:34,832 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.139925 | Avg Loss: 4.121874 | Progress:  50.0%
+2025-08-31 11:36:34,844 - src.training.train - INFO -     Batch  16/ 22 | Loss: 6.191902 | Avg Loss: 4.107987 | Progress:  72.7%
+2025-08-31 11:36:34,856 - src.training.train - INFO -     Batch  21/ 22 | Loss: 7.453954 | Avg Loss: 4.301769 | Progress:  95.5%
+2025-08-31 11:36:34,859 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.133961 | Avg Loss: 4.203233 | Progress: 100.0%
+2025-08-31 11:36:34,859 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,859 - src.training.train - INFO -       Loss range: 2.133961 to 7.771459
+2025-08-31 11:36:34,859 - src.training.train - INFO -       Gradient norms: avg=4.1894, max=9.5343
+2025-08-31 11:36:34,859 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,859 - src.training.train - INFO - Epoch 5/70 Complete [7.1% progress]:
+2025-08-31 11:36:34,859 - src.training.train - INFO -   Train Loss: 4.203233 (-0.259659)
+2025-08-31 11:36:34,859 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,859 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,859 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:34,859 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,860 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,860 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,863 - src.training.train - INFO - Epoch 6/70 - Training Phase
+2025-08-31 11:36:34,865 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.098120 | Avg Loss: 4.098120 | Progress:   4.5%
+2025-08-31 11:36:34,876 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.809682 | Avg Loss: 3.905407 | Progress:  27.3%
+2025-08-31 11:36:34,890 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.204773 | Avg Loss: 4.014802 | Progress:  50.0%
+2025-08-31 11:36:34,903 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.712478 | Avg Loss: 4.132581 | Progress:  72.7%
+2025-08-31 11:36:34,914 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.027129 | Avg Loss: 4.345730 | Progress:  95.5%
+2025-08-31 11:36:34,917 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.436185 | Avg Loss: 4.304387 | Progress: 100.0%
+2025-08-31 11:36:34,917 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,917 - src.training.train - INFO -       Loss range: 2.027129 to 7.548643
+2025-08-31 11:36:34,917 - src.training.train - INFO -       Gradient norms: avg=5.0182, max=11.0313
+2025-08-31 11:36:34,917 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,917 - src.training.train - INFO - Epoch 6/70 Complete [8.6% progress]:
+2025-08-31 11:36:34,917 - src.training.train - INFO -   Train Loss: 4.304387 (+0.101154)
+2025-08-31 11:36:34,917 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,917 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,917 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:34,917 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,918 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,918 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,918 - src.training.train - INFO - Epoch 7/70 - Training Phase
+2025-08-31 11:36:34,922 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.718236 | Avg Loss: 2.718236 | Progress:   4.5%
+2025-08-31 11:36:34,937 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.409840 | Avg Loss: 4.073296 | Progress:  27.3%
+2025-08-31 11:36:34,949 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.587029 | Avg Loss: 4.264398 | Progress:  50.0%
+2025-08-31 11:36:34,964 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.219758 | Avg Loss: 4.244680 | Progress:  72.7%
+2025-08-31 11:36:34,976 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.998455 | Avg Loss: 4.208260 | Progress:  95.5%
+2025-08-31 11:36:34,979 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.487972 | Avg Loss: 4.175519 | Progress: 100.0%
+2025-08-31 11:36:34,979 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:34,979 - src.training.train - INFO -       Loss range: 2.159530 to 6.998455
+2025-08-31 11:36:34,979 - src.training.train - INFO -       Gradient norms: avg=3.9654, max=10.0000
+2025-08-31 11:36:34,979 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:34,979 - src.training.train - INFO - Epoch 7/70 Complete [10.0% progress]:
+2025-08-31 11:36:34,979 - src.training.train - INFO -   Train Loss: 4.175519 (-0.128867)
+2025-08-31 11:36:34,979 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:34,979 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:34,979 - src.training.train - INFO -   Time:       0.06s (est. 4s remaining)
+2025-08-31 11:36:34,979 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:34,980 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:34,980 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:34,983 - src.training.train - INFO - Epoch 8/70 - Training Phase
+2025-08-31 11:36:34,986 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.761854 | Avg Loss: 3.761854 | Progress:   4.5%
+2025-08-31 11:36:34,997 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.789186 | Avg Loss: 3.930475 | Progress:  27.3%
+2025-08-31 11:36:35,008 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.929064 | Avg Loss: 4.328593 | Progress:  50.0%
+2025-08-31 11:36:35,019 - src.training.train - INFO -     Batch  16/ 22 | Loss: 5.672823 | Avg Loss: 4.440745 | Progress:  72.7%
+2025-08-31 11:36:35,031 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.658030 | Avg Loss: 4.274797 | Progress:  95.5%
+2025-08-31 11:36:35,033 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.348222 | Avg Loss: 4.232680 | Progress: 100.0%
+2025-08-31 11:36:35,033 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,033 - src.training.train - INFO -       Loss range: 2.522753 to 6.350990
+2025-08-31 11:36:35,033 - src.training.train - INFO -       Gradient norms: avg=4.5439, max=8.8767
+2025-08-31 11:36:35,034 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,034 - src.training.train - INFO - Epoch 8/70 Complete [11.4% progress]:
+2025-08-31 11:36:35,034 - src.training.train - INFO -   Train Loss: 4.232680 (+0.057161)
+2025-08-31 11:36:35,034 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,034 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,034 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,034 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,035 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,035 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,035 - src.training.train - INFO - Epoch 9/70 - Training Phase
+2025-08-31 11:36:35,038 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.309981 | Avg Loss: 4.309981 | Progress:   4.5%
+2025-08-31 11:36:35,049 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.835428 | Avg Loss: 4.020095 | Progress:  27.3%
+2025-08-31 11:36:35,062 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.110673 | Avg Loss: 3.915936 | Progress:  50.0%
+2025-08-31 11:36:35,075 - src.training.train - INFO -     Batch  16/ 22 | Loss: 6.327531 | Avg Loss: 4.116306 | Progress:  72.7%
+2025-08-31 11:36:35,086 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.081409 | Avg Loss: 4.196198 | Progress:  95.5%
+2025-08-31 11:36:35,089 - src.training.train - INFO -     Batch  22/ 22 | Loss: 7.228540 | Avg Loss: 4.334031 | Progress: 100.0%
+2025-08-31 11:36:35,089 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,089 - src.training.train - INFO -       Loss range: 1.957708 to 8.833967
+2025-08-31 11:36:35,089 - src.training.train - INFO -       Gradient norms: avg=5.2315, max=13.2735
+2025-08-31 11:36:35,089 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,089 - src.training.train - INFO - Epoch 9/70 Complete [12.9% progress]:
+2025-08-31 11:36:35,089 - src.training.train - INFO -   Train Loss: 4.334031 (+0.101351)
+2025-08-31 11:36:35,089 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,089 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,089 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,089 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,090 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,090 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,090 - src.training.train - INFO - Epoch 10/70 - Training Phase
+2025-08-31 11:36:35,093 - src.training.train - INFO -     Batch   1/ 22 | Loss: 6.023481 | Avg Loss: 6.023481 | Progress:   4.5%
+2025-08-31 11:36:35,105 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.634725 | Avg Loss: 4.315151 | Progress:  27.3%
+2025-08-31 11:36:35,116 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.893692 | Avg Loss: 3.882826 | Progress:  50.0%
+2025-08-31 11:36:35,129 - src.training.train - INFO -     Batch  16/ 22 | Loss: 6.957878 | Avg Loss: 4.130776 | Progress:  72.7%
+2025-08-31 11:36:35,141 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.751683 | Avg Loss: 4.222794 | Progress:  95.5%
+2025-08-31 11:36:35,143 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.146216 | Avg Loss: 4.264768 | Progress: 100.0%
+2025-08-31 11:36:35,143 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,143 - src.training.train - INFO -       Loss range: 2.030397 to 6.957878
+2025-08-31 11:36:35,143 - src.training.train - INFO -       Gradient norms: avg=4.5291, max=11.2206
+2025-08-31 11:36:35,143 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,143 - src.training.train - INFO - Epoch 10/70 Complete [14.3% progress]:
+2025-08-31 11:36:35,143 - src.training.train - INFO -   Train Loss: 4.264768 (-0.069264)
+2025-08-31 11:36:35,143 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,143 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,144 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,144 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,144 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,144 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,144 - src.training.train - INFO - Epoch 11/70 - Training Phase
+2025-08-31 11:36:35,147 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.185322 | Avg Loss: 5.185322 | Progress:   4.5%
+2025-08-31 11:36:35,159 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.475265 | Avg Loss: 4.043127 | Progress:  27.3%
+2025-08-31 11:36:35,173 - src.training.train - INFO -     Batch  11/ 22 | Loss: 6.529603 | Avg Loss: 4.202017 | Progress:  50.0%
+2025-08-31 11:36:35,187 - src.training.train - INFO -     Batch  16/ 22 | Loss: 2.854522 | Avg Loss: 4.442737 | Progress:  72.7%
+2025-08-31 11:36:35,202 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.150720 | Avg Loss: 4.195313 | Progress:  95.5%
+2025-08-31 11:36:35,206 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.367860 | Avg Loss: 4.248611 | Progress: 100.0%
+2025-08-31 11:36:35,206 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,206 - src.training.train - INFO -       Loss range: 2.433302 to 7.373320
+2025-08-31 11:36:35,206 - src.training.train - INFO -       Gradient norms: avg=4.4610, max=12.5716
+2025-08-31 11:36:35,207 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,207 - src.training.train - INFO - Epoch 11/70 Complete [15.7% progress]:
+2025-08-31 11:36:35,207 - src.training.train - INFO -   Train Loss: 4.248611 (-0.016157)
+2025-08-31 11:36:35,207 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,207 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,207 - src.training.train - INFO -   Time:       0.06s (est. 4s remaining)
+2025-08-31 11:36:35,207 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,208 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,208 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,208 - src.training.train - INFO - Epoch 12/70 - Training Phase
+2025-08-31 11:36:35,213 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.764880 | Avg Loss: 3.764880 | Progress:   4.5%
+2025-08-31 11:36:35,234 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.279331 | Avg Loss: 4.161550 | Progress:  27.3%
+2025-08-31 11:36:35,252 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.990031 | Avg Loss: 4.132832 | Progress:  50.0%
+2025-08-31 11:36:35,270 - src.training.train - INFO -     Batch  16/ 22 | Loss: 5.054055 | Avg Loss: 4.165376 | Progress:  72.7%
+2025-08-31 11:36:35,292 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.936236 | Avg Loss: 4.231846 | Progress:  95.5%
+2025-08-31 11:36:35,295 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.307702 | Avg Loss: 4.144385 | Progress: 100.0%
+2025-08-31 11:36:35,296 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,296 - src.training.train - INFO -       Loss range: 2.307702 to 6.936236
+2025-08-31 11:36:35,296 - src.training.train - INFO -       Gradient norms: avg=3.9360, max=10.9948
+2025-08-31 11:36:35,296 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,296 - src.training.train - INFO - Epoch 12/70 Complete [17.1% progress]:
+2025-08-31 11:36:35,296 - src.training.train - INFO -   Train Loss: 4.144385 (-0.104226)
+2025-08-31 11:36:35,296 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,296 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,296 - src.training.train - INFO -   Time:       0.09s (est. 5s remaining)
+2025-08-31 11:36:35,296 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,297 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,297 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,304 - src.training.train - INFO - Epoch 13/70 - Training Phase
+2025-08-31 11:36:35,314 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.299688 | Avg Loss: 4.299688 | Progress:   4.5%
+2025-08-31 11:36:35,342 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.114280 | Avg Loss: 4.189885 | Progress:  27.3%
+2025-08-31 11:36:35,369 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.165165 | Avg Loss: 4.207188 | Progress:  50.0%
+2025-08-31 11:36:35,384 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.121623 | Avg Loss: 4.101846 | Progress:  72.7%
+2025-08-31 11:36:35,400 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.597276 | Avg Loss: 4.124240 | Progress:  95.5%
+2025-08-31 11:36:35,403 - src.training.train - INFO -     Batch  22/ 22 | Loss: 4.601808 | Avg Loss: 4.145947 | Progress: 100.0%
+2025-08-31 11:36:35,403 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,403 - src.training.train - INFO -       Loss range: 2.580532 to 6.536223
+2025-08-31 11:36:35,403 - src.training.train - INFO -       Gradient norms: avg=4.1125, max=8.6005
+2025-08-31 11:36:35,404 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,404 - src.training.train - INFO - Epoch 13/70 Complete [18.6% progress]:
+2025-08-31 11:36:35,404 - src.training.train - INFO -   Train Loss: 4.145947 (+0.001562)
+2025-08-31 11:36:35,404 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,405 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,405 - src.training.train - INFO -   Time:       0.10s (est. 6s remaining)
+2025-08-31 11:36:35,405 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,405 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,405 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,406 - src.training.train - INFO - Epoch 14/70 - Training Phase
+2025-08-31 11:36:35,409 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.823205 | Avg Loss: 5.823205 | Progress:   4.5%
+2025-08-31 11:36:35,423 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.282285 | Avg Loss: 4.137556 | Progress:  27.3%
+2025-08-31 11:36:35,437 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.342395 | Avg Loss: 4.182343 | Progress:  50.0%
+2025-08-31 11:36:35,453 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.064523 | Avg Loss: 4.184683 | Progress:  72.7%
+2025-08-31 11:36:35,464 - src.training.train - INFO -     Batch  21/ 22 | Loss: 1.991142 | Avg Loss: 4.260764 | Progress:  95.5%
+2025-08-31 11:36:35,470 - src.training.train - INFO -     Batch  22/ 22 | Loss: 1.722099 | Avg Loss: 4.145370 | Progress: 100.0%
+2025-08-31 11:36:35,470 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,470 - src.training.train - INFO -       Loss range: 1.722099 to 6.740112
+2025-08-31 11:36:35,470 - src.training.train - INFO -       Gradient norms: avg=3.9972, max=6.4279
+2025-08-31 11:36:35,470 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,470 - src.training.train - INFO - Epoch 14/70 Complete [20.0% progress]:
+2025-08-31 11:36:35,471 - src.training.train - INFO -   Train Loss: 4.145370 (-0.000577)
+2025-08-31 11:36:35,471 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,471 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,471 - src.training.train - INFO -   Time:       0.06s (est. 4s remaining)
+2025-08-31 11:36:35,471 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,471 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,471 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,471 - src.training.train - INFO - Epoch 15/70 - Training Phase
+2025-08-31 11:36:35,474 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.805393 | Avg Loss: 5.805393 | Progress:   4.5%
+2025-08-31 11:36:35,485 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.909446 | Avg Loss: 4.173505 | Progress:  27.3%
+2025-08-31 11:36:35,498 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.260918 | Avg Loss: 4.299181 | Progress:  50.0%
+2025-08-31 11:36:35,510 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.271333 | Avg Loss: 4.235818 | Progress:  72.7%
+2025-08-31 11:36:35,523 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.731743 | Avg Loss: 4.283927 | Progress:  95.5%
+2025-08-31 11:36:35,525 - src.training.train - INFO -     Batch  22/ 22 | Loss: 1.207807 | Avg Loss: 4.144103 | Progress: 100.0%
+2025-08-31 11:36:35,525 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,525 - src.training.train - INFO -       Loss range: 1.207807 to 5.967591
+2025-08-31 11:36:35,525 - src.training.train - INFO -       Gradient norms: avg=3.4166, max=7.7308
+2025-08-31 11:36:35,525 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,526 - src.training.train - INFO - Epoch 15/70 Complete [21.4% progress]:
+2025-08-31 11:36:35,526 - src.training.train - INFO -   Train Loss: 4.144103 (-0.001267)
+2025-08-31 11:36:35,526 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,526 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,526 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,526 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,526 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,526 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,529 - src.training.train - INFO - Epoch 16/70 - Training Phase
+2025-08-31 11:36:35,532 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.035051 | Avg Loss: 5.035051 | Progress:   4.5%
+2025-08-31 11:36:35,544 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.725178 | Avg Loss: 3.575557 | Progress:  27.3%
+2025-08-31 11:36:35,555 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.008580 | Avg Loss: 3.786729 | Progress:  50.0%
+2025-08-31 11:36:35,566 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.419830 | Avg Loss: 3.774055 | Progress:  72.7%
+2025-08-31 11:36:35,576 - src.training.train - INFO -     Batch  21/ 22 | Loss: 7.772259 | Avg Loss: 4.098479 | Progress:  95.5%
+2025-08-31 11:36:35,579 - src.training.train - INFO -     Batch  22/ 22 | Loss: 7.193639 | Avg Loss: 4.239168 | Progress: 100.0%
+2025-08-31 11:36:35,579 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,579 - src.training.train - INFO -       Loss range: 2.598449 to 7.772259
+2025-08-31 11:36:35,579 - src.training.train - INFO -       Gradient norms: avg=4.4766, max=12.3649
+2025-08-31 11:36:35,579 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,579 - src.training.train - INFO - Epoch 16/70 Complete [22.9% progress]:
+2025-08-31 11:36:35,579 - src.training.train - INFO -   Train Loss: 4.239168 (+0.095065)
+2025-08-31 11:36:35,579 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,579 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,579 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,579 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,580 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,580 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,580 - src.training.train - INFO - Epoch 17/70 - Training Phase
+2025-08-31 11:36:35,583 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.424161 | Avg Loss: 5.424161 | Progress:   4.5%
+2025-08-31 11:36:35,594 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.019458 | Avg Loss: 4.005974 | Progress:  27.3%
+2025-08-31 11:36:35,605 - src.training.train - INFO -     Batch  11/ 22 | Loss: 6.517376 | Avg Loss: 4.284052 | Progress:  50.0%
+2025-08-31 11:36:35,621 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.722113 | Avg Loss: 4.261484 | Progress:  72.7%
+2025-08-31 11:36:35,638 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.080010 | Avg Loss: 4.235241 | Progress:  95.5%
+2025-08-31 11:36:35,640 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.096624 | Avg Loss: 4.138031 | Progress: 100.0%
+2025-08-31 11:36:35,640 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,641 - src.training.train - INFO -       Loss range: 2.096624 to 6.517376
+2025-08-31 11:36:35,641 - src.training.train - INFO -       Gradient norms: avg=4.6370, max=9.1034
+2025-08-31 11:36:35,641 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,641 - src.training.train - INFO - Epoch 17/70 Complete [24.3% progress]:
+2025-08-31 11:36:35,641 - src.training.train - INFO -   Train Loss: 4.138031 (-0.101137)
+2025-08-31 11:36:35,641 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,641 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,641 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:35,641 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,642 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,642 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,645 - src.training.train - INFO - Epoch 18/70 - Training Phase
+2025-08-31 11:36:35,648 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.705950 | Avg Loss: 2.705950 | Progress:   4.5%
+2025-08-31 11:36:35,659 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.252444 | Avg Loss: 3.923814 | Progress:  27.3%
+2025-08-31 11:36:35,670 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.782120 | Avg Loss: 3.888656 | Progress:  50.0%
+2025-08-31 11:36:35,681 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.762052 | Avg Loss: 3.890448 | Progress:  72.7%
+2025-08-31 11:36:35,693 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.859160 | Avg Loss: 4.262928 | Progress:  95.5%
+2025-08-31 11:36:35,695 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.418255 | Avg Loss: 4.179080 | Progress: 100.0%
+2025-08-31 11:36:35,695 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,695 - src.training.train - INFO -       Loss range: 2.055264 to 6.376696
+2025-08-31 11:36:35,695 - src.training.train - INFO -       Gradient norms: avg=3.8489, max=8.3341
+2025-08-31 11:36:35,695 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,695 - src.training.train - INFO - Epoch 18/70 Complete [25.7% progress]:
+2025-08-31 11:36:35,695 - src.training.train - INFO -   Train Loss: 4.179080 (+0.041048)
+2025-08-31 11:36:35,696 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,696 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,696 - src.training.train - INFO -   Time:       0.05s (est. 3s remaining)
+2025-08-31 11:36:35,696 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,696 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,696 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,696 - src.training.train - INFO - Epoch 19/70 - Training Phase
+2025-08-31 11:36:35,699 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.536319 | Avg Loss: 2.536319 | Progress:   4.5%
+2025-08-31 11:36:35,711 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.320933 | Avg Loss: 3.588333 | Progress:  27.3%
+2025-08-31 11:36:35,725 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.939109 | Avg Loss: 3.693360 | Progress:  50.0%
+2025-08-31 11:36:35,737 - src.training.train - INFO -     Batch  16/ 22 | Loss: 2.406484 | Avg Loss: 3.953958 | Progress:  72.7%
+2025-08-31 11:36:35,750 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.387297 | Avg Loss: 4.156591 | Progress:  95.5%
+2025-08-31 11:36:35,753 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.321618 | Avg Loss: 4.118637 | Progress: 100.0%
+2025-08-31 11:36:35,753 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,753 - src.training.train - INFO -       Loss range: 2.406484 to 8.421564
+2025-08-31 11:36:35,753 - src.training.train - INFO -       Gradient norms: avg=3.3243, max=5.5691
+2025-08-31 11:36:35,753 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,753 - src.training.train - INFO - Epoch 19/70 Complete [27.1% progress]:
+2025-08-31 11:36:35,754 - src.training.train - INFO -   Train Loss: 4.118637 (-0.060442)
+2025-08-31 11:36:35,754 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,754 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,754 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:35,754 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,754 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,754 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,757 - src.training.train - INFO - Epoch 20/70 - Training Phase
+2025-08-31 11:36:35,760 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.768036 | Avg Loss: 2.768036 | Progress:   4.5%
+2025-08-31 11:36:35,774 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.368291 | Avg Loss: 4.005724 | Progress:  27.3%
+2025-08-31 11:36:35,789 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.657335 | Avg Loss: 3.921888 | Progress:  50.0%
+2025-08-31 11:36:35,800 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.403819 | Avg Loss: 4.141843 | Progress:  72.7%
+2025-08-31 11:36:35,817 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.753519 | Avg Loss: 4.192029 | Progress:  95.5%
+2025-08-31 11:36:35,820 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.918677 | Avg Loss: 4.134149 | Progress: 100.0%
+2025-08-31 11:36:35,820 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,820 - src.training.train - INFO -       Loss range: 2.368291 to 6.516043
+2025-08-31 11:36:35,820 - src.training.train - INFO -       Gradient norms: avg=3.7653, max=7.2853
+2025-08-31 11:36:35,821 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,821 - src.training.train - INFO - Epoch 20/70 Complete [28.6% progress]:
+2025-08-31 11:36:35,821 - src.training.train - INFO -   Train Loss: 4.134149 (+0.015512)
+2025-08-31 11:36:35,821 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,821 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,822 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:35,822 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,822 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,822 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,822 - src.training.train - INFO - Epoch 21/70 - Training Phase
+2025-08-31 11:36:35,825 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.017112 | Avg Loss: 3.017112 | Progress:   4.5%
+2025-08-31 11:36:35,839 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.307690 | Avg Loss: 4.063048 | Progress:  27.3%
+2025-08-31 11:36:35,856 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.625886 | Avg Loss: 3.859740 | Progress:  50.0%
+2025-08-31 11:36:35,867 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.640037 | Avg Loss: 4.052510 | Progress:  72.7%
+2025-08-31 11:36:35,880 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.698048 | Avg Loss: 4.169940 | Progress:  95.5%
+2025-08-31 11:36:35,883 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.827857 | Avg Loss: 4.108936 | Progress: 100.0%
+2025-08-31 11:36:35,883 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,883 - src.training.train - INFO -       Loss range: 1.667197 to 5.755994
+2025-08-31 11:36:35,883 - src.training.train - INFO -       Gradient norms: avg=3.8860, max=8.6841
+2025-08-31 11:36:35,883 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,883 - src.training.train - INFO - Epoch 21/70 Complete [30.0% progress]:
+2025-08-31 11:36:35,883 - src.training.train - INFO -   Train Loss: 4.108936 (-0.025213)
+2025-08-31 11:36:35,883 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,883 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,884 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:35,884 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,884 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,884 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,889 - src.training.train - INFO - Epoch 22/70 - Training Phase
+2025-08-31 11:36:35,894 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.536115 | Avg Loss: 3.536115 | Progress:   4.5%
+2025-08-31 11:36:35,908 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.127229 | Avg Loss: 3.750283 | Progress:  27.3%
+2025-08-31 11:36:35,919 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.645232 | Avg Loss: 4.163643 | Progress:  50.0%
+2025-08-31 11:36:35,933 - src.training.train - INFO -     Batch  16/ 22 | Loss: 5.086804 | Avg Loss: 4.171496 | Progress:  72.7%
+2025-08-31 11:36:35,948 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.935253 | Avg Loss: 4.119928 | Progress:  95.5%
+2025-08-31 11:36:35,952 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.098497 | Avg Loss: 4.164408 | Progress: 100.0%
+2025-08-31 11:36:35,952 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:35,952 - src.training.train - INFO -       Loss range: 1.836985 to 7.602802
+2025-08-31 11:36:35,952 - src.training.train - INFO -       Gradient norms: avg=3.8767, max=11.7486
+2025-08-31 11:36:35,953 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:35,953 - src.training.train - INFO - Epoch 22/70 Complete [31.4% progress]:
+2025-08-31 11:36:35,953 - src.training.train - INFO -   Train Loss: 4.164408 (+0.055472)
+2025-08-31 11:36:35,953 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:35,953 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:35,953 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:35,953 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:35,954 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:35,954 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:35,954 - src.training.train - INFO - Epoch 23/70 - Training Phase
+2025-08-31 11:36:35,958 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.870916 | Avg Loss: 4.870916 | Progress:   4.5%
+2025-08-31 11:36:35,972 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.643741 | Avg Loss: 3.849587 | Progress:  27.3%
+2025-08-31 11:36:35,989 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.392498 | Avg Loss: 4.296461 | Progress:  50.0%
+2025-08-31 11:36:36,001 - src.training.train - INFO -     Batch  16/ 22 | Loss: 2.492986 | Avg Loss: 4.165728 | Progress:  72.7%
+2025-08-31 11:36:36,016 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.060015 | Avg Loss: 4.173570 | Progress:  95.5%
+2025-08-31 11:36:36,019 - src.training.train - INFO -     Batch  22/ 22 | Loss: 4.085814 | Avg Loss: 4.169581 | Progress: 100.0%
+2025-08-31 11:36:36,019 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,019 - src.training.train - INFO -       Loss range: 2.492986 to 8.569429
+2025-08-31 11:36:36,019 - src.training.train - INFO -       Gradient norms: avg=4.0848, max=9.5484
+2025-08-31 11:36:36,019 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,019 - src.training.train - INFO - Epoch 23/70 Complete [32.9% progress]:
+2025-08-31 11:36:36,020 - src.training.train - INFO -   Train Loss: 4.169581 (+0.005173)
+2025-08-31 11:36:36,020 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,020 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,020 - src.training.train - INFO -   Time:       0.07s (est. 3s remaining)
+2025-08-31 11:36:36,020 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,020 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,021 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,021 - src.training.train - INFO - Epoch 24/70 - Training Phase
+2025-08-31 11:36:36,024 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.392503 | Avg Loss: 4.392503 | Progress:   4.5%
+2025-08-31 11:36:36,037 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.211461 | Avg Loss: 3.457247 | Progress:  27.3%
+2025-08-31 11:36:36,050 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.362786 | Avg Loss: 3.572280 | Progress:  50.0%
+2025-08-31 11:36:36,063 - src.training.train - INFO -     Batch  16/ 22 | Loss: 5.822913 | Avg Loss: 3.768332 | Progress:  72.7%
+2025-08-31 11:36:36,078 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.888990 | Avg Loss: 4.106234 | Progress:  95.5%
+2025-08-31 11:36:36,080 - src.training.train - INFO -     Batch  22/ 22 | Loss: 6.873784 | Avg Loss: 4.232031 | Progress: 100.0%
+2025-08-31 11:36:36,080 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,080 - src.training.train - INFO -       Loss range: 2.321811 to 6.873784
+2025-08-31 11:36:36,080 - src.training.train - INFO -       Gradient norms: avg=4.7783, max=18.8475
+2025-08-31 11:36:36,080 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,080 - src.training.train - INFO - Epoch 24/70 Complete [34.3% progress]:
+2025-08-31 11:36:36,081 - src.training.train - INFO -   Train Loss: 4.232031 (+0.062451)
+2025-08-31 11:36:36,081 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,081 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,081 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:36,081 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,081 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,081 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,081 - src.training.train - INFO - Epoch 25/70 - Training Phase
+2025-08-31 11:36:36,084 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.829883 | Avg Loss: 4.829883 | Progress:   4.5%
+2025-08-31 11:36:36,101 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.031270 | Avg Loss: 3.566614 | Progress:  27.3%
+2025-08-31 11:36:36,115 - src.training.train - INFO -     Batch  11/ 22 | Loss: 8.724205 | Avg Loss: 3.839866 | Progress:  50.0%
+2025-08-31 11:36:36,130 - src.training.train - INFO -     Batch  16/ 22 | Loss: 6.540520 | Avg Loss: 4.230134 | Progress:  72.7%
+2025-08-31 11:36:36,142 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.162402 | Avg Loss: 4.152278 | Progress:  95.5%
+2025-08-31 11:36:36,144 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.913474 | Avg Loss: 4.141423 | Progress: 100.0%
+2025-08-31 11:36:36,144 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,144 - src.training.train - INFO -       Loss range: 1.586027 to 8.724205
+2025-08-31 11:36:36,144 - src.training.train - INFO -       Gradient norms: avg=3.4610, max=7.6051
+2025-08-31 11:36:36,144 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,145 - src.training.train - INFO - Epoch 25/70 Complete [35.7% progress]:
+2025-08-31 11:36:36,145 - src.training.train - INFO -   Train Loss: 4.141423 (-0.090608)
+2025-08-31 11:36:36,145 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,145 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,145 - src.training.train - INFO -   Time:       0.06s (est. 3s remaining)
+2025-08-31 11:36:36,145 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,145 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,145 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,145 - src.training.train - INFO - Epoch 26/70 - Training Phase
+2025-08-31 11:36:36,149 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.425915 | Avg Loss: 2.425915 | Progress:   4.5%
+2025-08-31 11:36:36,162 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.030574 | Avg Loss: 3.888235 | Progress:  27.3%
+2025-08-31 11:36:36,181 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.631839 | Avg Loss: 4.089766 | Progress:  50.0%
+2025-08-31 11:36:36,194 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.149665 | Avg Loss: 4.173083 | Progress:  72.7%
+2025-08-31 11:36:36,208 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.915722 | Avg Loss: 4.148297 | Progress:  95.5%
+2025-08-31 11:36:36,212 - src.training.train - INFO -     Batch  22/ 22 | Loss: 6.709178 | Avg Loss: 4.264700 | Progress: 100.0%
+2025-08-31 11:36:36,212 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,212 - src.training.train - INFO -       Loss range: 2.425915 to 8.002438
+2025-08-31 11:36:36,212 - src.training.train - INFO -       Gradient norms: avg=4.1742, max=9.5261
+2025-08-31 11:36:36,212 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,212 - src.training.train - INFO - Epoch 26/70 Complete [37.1% progress]:
+2025-08-31 11:36:36,213 - src.training.train - INFO -   Train Loss: 4.264700 (+0.123277)
+2025-08-31 11:36:36,213 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,213 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,213 - src.training.train - INFO -   Time:       0.07s (est. 3s remaining)
+2025-08-31 11:36:36,213 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,213 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,213 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,213 - src.training.train - INFO - Epoch 27/70 - Training Phase
+2025-08-31 11:36:36,218 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.663811 | Avg Loss: 3.663811 | Progress:   4.5%
+2025-08-31 11:36:36,237 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.268421 | Avg Loss: 3.854959 | Progress:  27.3%
+2025-08-31 11:36:36,252 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.065135 | Avg Loss: 4.038259 | Progress:  50.0%
+2025-08-31 11:36:36,264 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.225440 | Avg Loss: 4.126502 | Progress:  72.7%
+2025-08-31 11:36:36,279 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.846108 | Avg Loss: 4.115475 | Progress:  95.5%
+2025-08-31 11:36:36,282 - src.training.train - INFO -     Batch  22/ 22 | Loss: 4.592805 | Avg Loss: 4.137172 | Progress: 100.0%
+2025-08-31 11:36:36,282 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,282 - src.training.train - INFO -       Loss range: 2.485678 to 5.818987
+2025-08-31 11:36:36,282 - src.training.train - INFO -       Gradient norms: avg=4.2807, max=8.8952
+2025-08-31 11:36:36,283 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,283 - src.training.train - INFO - Epoch 27/70 Complete [38.6% progress]:
+2025-08-31 11:36:36,283 - src.training.train - INFO -   Train Loss: 4.137172 (-0.127529)
+2025-08-31 11:36:36,283 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,283 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,283 - src.training.train - INFO -   Time:       0.07s (est. 3s remaining)
+2025-08-31 11:36:36,283 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,284 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,284 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,284 - src.training.train - INFO - Epoch 28/70 - Training Phase
+2025-08-31 11:36:36,289 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.010330 | Avg Loss: 5.010330 | Progress:   4.5%
+2025-08-31 11:36:36,305 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.013212 | Avg Loss: 4.479536 | Progress:  27.3%
+2025-08-31 11:36:36,318 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.556091 | Avg Loss: 4.128903 | Progress:  50.0%
+2025-08-31 11:36:36,336 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.880955 | Avg Loss: 4.071482 | Progress:  72.7%
+2025-08-31 11:36:36,353 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.884401 | Avg Loss: 4.158844 | Progress:  95.5%
+2025-08-31 11:36:36,356 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.566098 | Avg Loss: 4.131901 | Progress: 100.0%
+2025-08-31 11:36:36,356 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,356 - src.training.train - INFO -       Loss range: 2.481695 to 8.973944
+2025-08-31 11:36:36,356 - src.training.train - INFO -       Gradient norms: avg=3.5733, max=7.4900
+2025-08-31 11:36:36,356 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,356 - src.training.train - INFO - Epoch 28/70 Complete [40.0% progress]:
+2025-08-31 11:36:36,356 - src.training.train - INFO -   Train Loss: 4.131901 (-0.005270)
+2025-08-31 11:36:36,356 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,356 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,357 - src.training.train - INFO -   Time:       0.07s (est. 3s remaining)
+2025-08-31 11:36:36,357 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,357 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,357 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,357 - src.training.train - INFO - Epoch 29/70 - Training Phase
+2025-08-31 11:36:36,361 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.610111 | Avg Loss: 2.610111 | Progress:   4.5%
+2025-08-31 11:36:36,375 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.790898 | Avg Loss: 4.200274 | Progress:  27.3%
+2025-08-31 11:36:36,393 - src.training.train - INFO -     Batch  11/ 22 | Loss: 6.136666 | Avg Loss: 4.323601 | Progress:  50.0%
+2025-08-31 11:36:36,407 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.013100 | Avg Loss: 4.284828 | Progress:  72.7%
+2025-08-31 11:36:36,420 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.428794 | Avg Loss: 4.108758 | Progress:  95.5%
+2025-08-31 11:36:36,423 - src.training.train - INFO -     Batch  22/ 22 | Loss: 6.038438 | Avg Loss: 4.196470 | Progress: 100.0%
+2025-08-31 11:36:36,423 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,423 - src.training.train - INFO -       Loss range: 2.475677 to 6.140675
+2025-08-31 11:36:36,423 - src.training.train - INFO -       Gradient norms: avg=3.6479, max=9.4705
+2025-08-31 11:36:36,423 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,423 - src.training.train - INFO - Epoch 29/70 Complete [41.4% progress]:
+2025-08-31 11:36:36,423 - src.training.train - INFO -   Train Loss: 4.196470 (+0.064569)
+2025-08-31 11:36:36,424 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,424 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,424 - src.training.train - INFO -   Time:       0.07s (est. 3s remaining)
+2025-08-31 11:36:36,424 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,424 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,424 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,424 - src.training.train - INFO - Epoch 30/70 - Training Phase
+2025-08-31 11:36:36,428 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.716958 | Avg Loss: 3.716958 | Progress:   4.5%
+2025-08-31 11:36:36,440 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.871766 | Avg Loss: 3.433343 | Progress:  27.3%
+2025-08-31 11:36:36,454 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.034080 | Avg Loss: 3.809260 | Progress:  50.0%
+2025-08-31 11:36:36,466 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.290684 | Avg Loss: 4.111797 | Progress:  72.7%
+2025-08-31 11:36:36,481 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.483858 | Avg Loss: 4.143248 | Progress:  95.5%
+2025-08-31 11:36:36,483 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.232691 | Avg Loss: 4.056404 | Progress: 100.0%
+2025-08-31 11:36:36,483 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,483 - src.training.train - INFO -       Loss range: 2.232691 to 6.255713
+2025-08-31 11:36:36,483 - src.training.train - INFO -       Gradient norms: avg=3.1259, max=6.2069
+2025-08-31 11:36:36,484 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,484 - src.training.train - INFO - Epoch 30/70 Complete [42.9% progress]:
+2025-08-31 11:36:36,484 - src.training.train - INFO -   Train Loss: 4.056404 (-0.140066)
+2025-08-31 11:36:36,484 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,484 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,484 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,484 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,485 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,485 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,488 - src.training.train - INFO - Epoch 31/70 - Training Phase
+2025-08-31 11:36:36,491 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.417063 | Avg Loss: 3.417063 | Progress:   4.5%
+2025-08-31 11:36:36,503 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.336189 | Avg Loss: 4.125110 | Progress:  27.3%
+2025-08-31 11:36:36,517 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.160895 | Avg Loss: 4.310077 | Progress:  50.0%
+2025-08-31 11:36:36,532 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.369545 | Avg Loss: 4.212081 | Progress:  72.7%
+2025-08-31 11:36:36,543 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.594187 | Avg Loss: 4.169839 | Progress:  95.5%
+2025-08-31 11:36:36,545 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.481231 | Avg Loss: 4.138538 | Progress: 100.0%
+2025-08-31 11:36:36,545 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,545 - src.training.train - INFO -       Loss range: 2.253108 to 8.241138
+2025-08-31 11:36:36,546 - src.training.train - INFO -       Gradient norms: avg=4.0690, max=7.1155
+2025-08-31 11:36:36,546 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,546 - src.training.train - INFO - Epoch 31/70 Complete [44.3% progress]:
+2025-08-31 11:36:36,546 - src.training.train - INFO -   Train Loss: 4.138538 (+0.082134)
+2025-08-31 11:36:36,546 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,546 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,546 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,546 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,547 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,547 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,547 - src.training.train - INFO - Epoch 32/70 - Training Phase
+2025-08-31 11:36:36,550 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.073218 | Avg Loss: 4.073218 | Progress:   4.5%
+2025-08-31 11:36:36,563 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.695455 | Avg Loss: 4.565542 | Progress:  27.3%
+2025-08-31 11:36:36,575 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.782062 | Avg Loss: 4.263146 | Progress:  50.0%
+2025-08-31 11:36:36,587 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.741575 | Avg Loss: 4.215964 | Progress:  72.7%
+2025-08-31 11:36:36,600 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.028349 | Avg Loss: 4.182129 | Progress:  95.5%
+2025-08-31 11:36:36,602 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.887522 | Avg Loss: 4.123283 | Progress: 100.0%
+2025-08-31 11:36:36,602 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,602 - src.training.train - INFO -       Loss range: 1.553420 to 7.435642
+2025-08-31 11:36:36,602 - src.training.train - INFO -       Gradient norms: avg=3.7044, max=6.4449
+2025-08-31 11:36:36,603 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,603 - src.training.train - INFO - Epoch 32/70 Complete [45.7% progress]:
+2025-08-31 11:36:36,603 - src.training.train - INFO -   Train Loss: 4.123283 (-0.015255)
+2025-08-31 11:36:36,603 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,603 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,603 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,603 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,604 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,604 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,604 - src.training.train - INFO - Epoch 33/70 - Training Phase
+2025-08-31 11:36:36,607 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.151655 | Avg Loss: 3.151655 | Progress:   4.5%
+2025-08-31 11:36:36,621 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.962755 | Avg Loss: 3.674747 | Progress:  27.3%
+2025-08-31 11:36:36,632 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.989080 | Avg Loss: 3.865544 | Progress:  50.0%
+2025-08-31 11:36:36,643 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.343748 | Avg Loss: 4.238769 | Progress:  72.7%
+2025-08-31 11:36:36,654 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.227585 | Avg Loss: 4.146550 | Progress:  95.5%
+2025-08-31 11:36:36,656 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.982792 | Avg Loss: 4.139107 | Progress: 100.0%
+2025-08-31 11:36:36,657 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,657 - src.training.train - INFO -       Loss range: 1.547892 to 6.642980
+2025-08-31 11:36:36,657 - src.training.train - INFO -       Gradient norms: avg=3.8313, max=11.8592
+2025-08-31 11:36:36,657 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,657 - src.training.train - INFO - Epoch 33/70 Complete [47.1% progress]:
+2025-08-31 11:36:36,657 - src.training.train - INFO -   Train Loss: 4.139107 (+0.015823)
+2025-08-31 11:36:36,657 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,657 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,657 - src.training.train - INFO -   Time:       0.05s (est. 2s remaining)
+2025-08-31 11:36:36,657 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,658 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,658 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,658 - src.training.train - INFO - Epoch 34/70 - Training Phase
+2025-08-31 11:36:36,661 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.589144 | Avg Loss: 4.589144 | Progress:   4.5%
+2025-08-31 11:36:36,672 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.911763 | Avg Loss: 4.228002 | Progress:  27.3%
+2025-08-31 11:36:36,683 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.742044 | Avg Loss: 4.645059 | Progress:  50.0%
+2025-08-31 11:36:36,694 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.892259 | Avg Loss: 4.330860 | Progress:  72.7%
+2025-08-31 11:36:36,705 - src.training.train - INFO -     Batch  21/ 22 | Loss: 2.581684 | Avg Loss: 4.158399 | Progress:  95.5%
+2025-08-31 11:36:36,707 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.906729 | Avg Loss: 4.101505 | Progress: 100.0%
+2025-08-31 11:36:36,708 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,708 - src.training.train - INFO -       Loss range: 2.432905 to 6.002793
+2025-08-31 11:36:36,708 - src.training.train - INFO -       Gradient norms: avg=2.5705, max=6.2249
+2025-08-31 11:36:36,708 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,708 - src.training.train - INFO - Epoch 34/70 Complete [48.6% progress]:
+2025-08-31 11:36:36,708 - src.training.train - INFO -   Train Loss: 4.101505 (-0.037602)
+2025-08-31 11:36:36,708 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,708 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,708 - src.training.train - INFO -   Time:       0.05s (est. 2s remaining)
+2025-08-31 11:36:36,708 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,709 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,709 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,709 - src.training.train - INFO - Epoch 35/70 - Training Phase
+2025-08-31 11:36:36,712 - src.training.train - INFO -     Batch   1/ 22 | Loss: 2.546307 | Avg Loss: 2.546307 | Progress:   4.5%
+2025-08-31 11:36:36,723 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.149040 | Avg Loss: 3.137222 | Progress:  27.3%
+2025-08-31 11:36:36,734 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.448117 | Avg Loss: 3.769328 | Progress:  50.0%
+2025-08-31 11:36:36,745 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.687193 | Avg Loss: 3.734818 | Progress:  72.7%
+2025-08-31 11:36:36,759 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.846030 | Avg Loss: 4.152591 | Progress:  95.5%
+2025-08-31 11:36:36,762 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.242726 | Avg Loss: 4.065779 | Progress: 100.0%
+2025-08-31 11:36:36,762 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,762 - src.training.train - INFO -       Loss range: 2.242726 to 7.559541
+2025-08-31 11:36:36,762 - src.training.train - INFO -       Gradient norms: avg=2.6703, max=6.0651
+2025-08-31 11:36:36,762 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,762 - src.training.train - INFO - Epoch 35/70 Complete [50.0% progress]:
+2025-08-31 11:36:36,762 - src.training.train - INFO -   Train Loss: 4.065779 (-0.035725)
+2025-08-31 11:36:36,763 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,763 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,763 - src.training.train - INFO -   Time:       0.05s (est. 2s remaining)
+2025-08-31 11:36:36,763 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,763 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,763 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,763 - src.training.train - INFO - Epoch 36/70 - Training Phase
+2025-08-31 11:36:36,766 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.221676 | Avg Loss: 3.221676 | Progress:   4.5%
+2025-08-31 11:36:36,780 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.546683 | Avg Loss: 4.568388 | Progress:  27.3%
+2025-08-31 11:36:36,792 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.235648 | Avg Loss: 4.022811 | Progress:  50.0%
+2025-08-31 11:36:36,806 - src.training.train - INFO -     Batch  16/ 22 | Loss: 2.818002 | Avg Loss: 4.054343 | Progress:  72.7%
+2025-08-31 11:36:36,817 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.783207 | Avg Loss: 4.133978 | Progress:  95.5%
+2025-08-31 11:36:36,819 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.468866 | Avg Loss: 4.194655 | Progress: 100.0%
+2025-08-31 11:36:36,819 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,819 - src.training.train - INFO -       Loss range: 2.315509 to 8.913315
+2025-08-31 11:36:36,819 - src.training.train - INFO -       Gradient norms: avg=3.7075, max=7.2434
+2025-08-31 11:36:36,819 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,819 - src.training.train - INFO - Epoch 36/70 Complete [51.4% progress]:
+2025-08-31 11:36:36,819 - src.training.train - INFO -   Train Loss: 4.194655 (+0.128875)
+2025-08-31 11:36:36,819 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,820 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,820 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,820 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,820 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,820 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,820 - src.training.train - INFO - Epoch 37/70 - Training Phase
+2025-08-31 11:36:36,824 - src.training.train - INFO -     Batch   1/ 22 | Loss: 6.692978 | Avg Loss: 6.692978 | Progress:   4.5%
+2025-08-31 11:36:36,835 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.018687 | Avg Loss: 4.300471 | Progress:  27.3%
+2025-08-31 11:36:36,848 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.231276 | Avg Loss: 4.366132 | Progress:  50.0%
+2025-08-31 11:36:36,860 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.196473 | Avg Loss: 4.176104 | Progress:  72.7%
+2025-08-31 11:36:36,873 - src.training.train - INFO -     Batch  21/ 22 | Loss: 6.925179 | Avg Loss: 4.174797 | Progress:  95.5%
+2025-08-31 11:36:36,876 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.200177 | Avg Loss: 4.085042 | Progress: 100.0%
+2025-08-31 11:36:36,876 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,876 - src.training.train - INFO -       Loss range: 2.200177 to 6.925179
+2025-08-31 11:36:36,876 - src.training.train - INFO -       Gradient norms: avg=2.8988, max=5.5459
+2025-08-31 11:36:36,876 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,877 - src.training.train - INFO - Epoch 37/70 Complete [52.9% progress]:
+2025-08-31 11:36:36,877 - src.training.train - INFO -   Train Loss: 4.085042 (-0.109613)
+2025-08-31 11:36:36,877 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,877 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,877 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,877 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,877 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,877 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,877 - src.training.train - INFO - Epoch 38/70 - Training Phase
+2025-08-31 11:36:36,880 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.047215 | Avg Loss: 5.047215 | Progress:   4.5%
+2025-08-31 11:36:36,893 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.549379 | Avg Loss: 3.757522 | Progress:  27.3%
+2025-08-31 11:36:36,904 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.916377 | Avg Loss: 3.977236 | Progress:  50.0%
+2025-08-31 11:36:36,916 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.522754 | Avg Loss: 4.131952 | Progress:  72.7%
+2025-08-31 11:36:36,928 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.934617 | Avg Loss: 4.063406 | Progress:  95.5%
+2025-08-31 11:36:36,930 - src.training.train - INFO -     Batch  22/ 22 | Loss: 7.366409 | Avg Loss: 4.213542 | Progress: 100.0%
+2025-08-31 11:36:36,930 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,930 - src.training.train - INFO -       Loss range: 2.214125 to 7.366409
+2025-08-31 11:36:36,930 - src.training.train - INFO -       Gradient norms: avg=3.2312, max=6.9664
+2025-08-31 11:36:36,930 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,931 - src.training.train - INFO - Epoch 38/70 Complete [54.3% progress]:
+2025-08-31 11:36:36,931 - src.training.train - INFO -   Train Loss: 4.213542 (+0.128500)
+2025-08-31 11:36:36,931 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,931 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,931 - src.training.train - INFO -   Time:       0.05s (est. 2s remaining)
+2025-08-31 11:36:36,931 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,931 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,931 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,931 - src.training.train - INFO - Epoch 39/70 - Training Phase
+2025-08-31 11:36:36,934 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.659443 | Avg Loss: 4.659443 | Progress:   4.5%
+2025-08-31 11:36:36,945 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.545565 | Avg Loss: 5.270795 | Progress:  27.3%
+2025-08-31 11:36:36,956 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.416991 | Avg Loss: 4.773849 | Progress:  50.0%
+2025-08-31 11:36:36,969 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.594896 | Avg Loss: 4.341361 | Progress:  72.7%
+2025-08-31 11:36:36,984 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.376606 | Avg Loss: 4.141200 | Progress:  95.5%
+2025-08-31 11:36:36,987 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.742291 | Avg Loss: 4.213977 | Progress: 100.0%
+2025-08-31 11:36:36,988 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:36,988 - src.training.train - INFO -       Loss range: 2.188233 to 6.838346
+2025-08-31 11:36:36,988 - src.training.train - INFO -       Gradient norms: avg=3.1090, max=9.1327
+2025-08-31 11:36:36,988 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:36,988 - src.training.train - INFO - Epoch 39/70 Complete [55.7% progress]:
+2025-08-31 11:36:36,988 - src.training.train - INFO -   Train Loss: 4.213977 (+0.000435)
+2025-08-31 11:36:36,988 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:36,988 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:36,988 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:36,988 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:36,989 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:36,989 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:36,989 - src.training.train - INFO - Epoch 40/70 - Training Phase
+2025-08-31 11:36:36,992 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.476736 | Avg Loss: 4.476736 | Progress:   4.5%
+2025-08-31 11:36:37,007 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.601307 | Avg Loss: 4.288089 | Progress:  27.3%
+2025-08-31 11:36:37,025 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.944089 | Avg Loss: 4.023196 | Progress:  50.0%
+2025-08-31 11:36:37,041 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.147013 | Avg Loss: 4.054098 | Progress:  72.7%
+2025-08-31 11:36:37,055 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.185935 | Avg Loss: 4.168276 | Progress:  95.5%
+2025-08-31 11:36:37,057 - src.training.train - INFO -     Batch  22/ 22 | Loss: 1.361602 | Avg Loss: 4.040700 | Progress: 100.0%
+2025-08-31 11:36:37,057 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,057 - src.training.train - INFO -       Loss range: 1.361602 to 6.814492
+2025-08-31 11:36:37,057 - src.training.train - INFO -       Gradient norms: avg=3.5508, max=8.3804
+2025-08-31 11:36:37,057 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,058 - src.training.train - INFO - Epoch 40/70 Complete [57.1% progress]:
+2025-08-31 11:36:37,058 - src.training.train - INFO -   Train Loss: 4.040700 (-0.173277)
+2025-08-31 11:36:37,058 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,058 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,058 - src.training.train - INFO -   Time:       0.07s (est. 2s remaining)
+2025-08-31 11:36:37,058 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,058 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,058 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,061 - src.training.train - INFO - Epoch 41/70 - Training Phase
+2025-08-31 11:36:37,065 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.278536 | Avg Loss: 4.278536 | Progress:   4.5%
+2025-08-31 11:36:37,077 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.101754 | Avg Loss: 3.507859 | Progress:  27.3%
+2025-08-31 11:36:37,091 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.878534 | Avg Loss: 4.210940 | Progress:  50.0%
+2025-08-31 11:36:37,104 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.974969 | Avg Loss: 4.172003 | Progress:  72.7%
+2025-08-31 11:36:37,115 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.842899 | Avg Loss: 4.097440 | Progress:  95.5%
+2025-08-31 11:36:37,118 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.226108 | Avg Loss: 4.148743 | Progress: 100.0%
+2025-08-31 11:36:37,119 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,119 - src.training.train - INFO -       Loss range: 2.754540 to 8.490451
+2025-08-31 11:36:37,119 - src.training.train - INFO -       Gradient norms: avg=3.8721, max=10.5214
+2025-08-31 11:36:37,119 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,119 - src.training.train - INFO - Epoch 41/70 Complete [58.6% progress]:
+2025-08-31 11:36:37,119 - src.training.train - INFO -   Train Loss: 4.148743 (+0.108043)
+2025-08-31 11:36:37,119 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,119 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,119 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:37,119 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,120 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,120 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,120 - src.training.train - INFO - Epoch 42/70 - Training Phase
+2025-08-31 11:36:37,124 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.554030 | Avg Loss: 5.554030 | Progress:   4.5%
+2025-08-31 11:36:37,137 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.016993 | Avg Loss: 4.549974 | Progress:  27.3%
+2025-08-31 11:36:37,153 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.576287 | Avg Loss: 4.558552 | Progress:  50.0%
+2025-08-31 11:36:37,165 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.543322 | Avg Loss: 4.296700 | Progress:  72.7%
+2025-08-31 11:36:37,176 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.096190 | Avg Loss: 4.189529 | Progress:  95.5%
+2025-08-31 11:36:37,180 - src.training.train - INFO -     Batch  22/ 22 | Loss: 1.193519 | Avg Loss: 4.053347 | Progress: 100.0%
+2025-08-31 11:36:37,180 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,180 - src.training.train - INFO -       Loss range: 1.193519 to 6.540110
+2025-08-31 11:36:37,180 - src.training.train - INFO -       Gradient norms: avg=4.0159, max=9.5334
+2025-08-31 11:36:37,180 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,180 - src.training.train - INFO - Epoch 42/70 Complete [60.0% progress]:
+2025-08-31 11:36:37,180 - src.training.train - INFO -   Train Loss: 4.053347 (-0.095396)
+2025-08-31 11:36:37,180 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,180 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,180 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:37,180 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,181 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,181 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,181 - src.training.train - INFO - Epoch 43/70 - Training Phase
+2025-08-31 11:36:37,184 - src.training.train - INFO -     Batch   1/ 22 | Loss: 1.944046 | Avg Loss: 1.944046 | Progress:   4.5%
+2025-08-31 11:36:37,197 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.311574 | Avg Loss: 3.316801 | Progress:  27.3%
+2025-08-31 11:36:37,212 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.728531 | Avg Loss: 4.001282 | Progress:  50.0%
+2025-08-31 11:36:37,228 - src.training.train - INFO -     Batch  16/ 22 | Loss: 6.555387 | Avg Loss: 4.318779 | Progress:  72.7%
+2025-08-31 11:36:37,240 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.287655 | Avg Loss: 4.137267 | Progress:  95.5%
+2025-08-31 11:36:37,242 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.167310 | Avg Loss: 4.093178 | Progress: 100.0%
+2025-08-31 11:36:37,242 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,242 - src.training.train - INFO -       Loss range: 1.944046 to 7.334795
+2025-08-31 11:36:37,243 - src.training.train - INFO -       Gradient norms: avg=3.4162, max=8.5078
+2025-08-31 11:36:37,243 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,243 - src.training.train - INFO - Epoch 43/70 Complete [61.4% progress]:
+2025-08-31 11:36:37,243 - src.training.train - INFO -   Train Loss: 4.093178 (+0.039831)
+2025-08-31 11:36:37,243 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,243 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,243 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:37,243 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,244 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,244 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,244 - src.training.train - INFO - Epoch 44/70 - Training Phase
+2025-08-31 11:36:37,247 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.819233 | Avg Loss: 3.819233 | Progress:   4.5%
+2025-08-31 11:36:37,260 - src.training.train - INFO -     Batch   6/ 22 | Loss: 6.866578 | Avg Loss: 4.490587 | Progress:  27.3%
+2025-08-31 11:36:37,276 - src.training.train - INFO -     Batch  11/ 22 | Loss: 1.934436 | Avg Loss: 4.194703 | Progress:  50.0%
+2025-08-31 11:36:37,287 - src.training.train - INFO -     Batch  16/ 22 | Loss: 7.100354 | Avg Loss: 4.366221 | Progress:  72.7%
+2025-08-31 11:36:37,303 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.869884 | Avg Loss: 4.148372 | Progress:  95.5%
+2025-08-31 11:36:37,306 - src.training.train - INFO -     Batch  22/ 22 | Loss: 3.287060 | Avg Loss: 4.109222 | Progress: 100.0%
+2025-08-31 11:36:37,306 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,306 - src.training.train - INFO -       Loss range: 1.934436 to 7.100354
+2025-08-31 11:36:37,306 - src.training.train - INFO -       Gradient norms: avg=3.3766, max=8.9440
+2025-08-31 11:36:37,307 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,307 - src.training.train - INFO - Epoch 44/70 Complete [62.9% progress]:
+2025-08-31 11:36:37,307 - src.training.train - INFO -   Train Loss: 4.109222 (+0.016044)
+2025-08-31 11:36:37,307 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,307 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,307 - src.training.train - INFO -   Time:       0.06s (est. 2s remaining)
+2025-08-31 11:36:37,307 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,307 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,308 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,308 - src.training.train - INFO - Epoch 45/70 - Training Phase
+2025-08-31 11:36:37,311 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.044379 | Avg Loss: 4.044379 | Progress:   4.5%
+2025-08-31 11:36:37,326 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.795635 | Avg Loss: 4.360244 | Progress:  27.3%
+2025-08-31 11:36:37,340 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.041122 | Avg Loss: 4.441079 | Progress:  50.0%
+2025-08-31 11:36:37,356 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.106492 | Avg Loss: 4.333319 | Progress:  72.7%
+2025-08-31 11:36:37,373 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.809675 | Avg Loss: 4.164620 | Progress:  95.5%
+2025-08-31 11:36:37,375 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.281194 | Avg Loss: 4.079010 | Progress: 100.0%
+2025-08-31 11:36:37,375 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,376 - src.training.train - INFO -       Loss range: 2.107614 to 7.272087
+2025-08-31 11:36:37,376 - src.training.train - INFO -       Gradient norms: avg=3.2796, max=10.5256
+2025-08-31 11:36:37,376 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,376 - src.training.train - INFO - Epoch 45/70 Complete [64.3% progress]:
+2025-08-31 11:36:37,376 - src.training.train - INFO -   Train Loss: 4.079010 (-0.030212)
+2025-08-31 11:36:37,376 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,376 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,376 - src.training.train - INFO -   Time:       0.07s (est. 2s remaining)
+2025-08-31 11:36:37,376 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,377 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,377 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,377 - src.training.train - INFO - Epoch 46/70 - Training Phase
+2025-08-31 11:36:37,380 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.731737 | Avg Loss: 4.731737 | Progress:   4.5%
+2025-08-31 11:36:37,403 - src.training.train - INFO -     Batch   6/ 22 | Loss: 5.142877 | Avg Loss: 4.726796 | Progress:  27.3%
+2025-08-31 11:36:37,419 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.263490 | Avg Loss: 4.192297 | Progress:  50.0%
+2025-08-31 11:36:37,436 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.358850 | Avg Loss: 4.252681 | Progress:  72.7%
+2025-08-31 11:36:37,447 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.946431 | Avg Loss: 4.092510 | Progress:  95.5%
+2025-08-31 11:36:37,449 - src.training.train - INFO -     Batch  22/ 22 | Loss: 6.155529 | Avg Loss: 4.186284 | Progress: 100.0%
+2025-08-31 11:36:37,450 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,450 - src.training.train - INFO -       Loss range: 1.876349 to 6.155529
+2025-08-31 11:36:37,450 - src.training.train - INFO -       Gradient norms: avg=3.5462, max=11.5983
+2025-08-31 11:36:37,450 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,450 - src.training.train - INFO - Epoch 46/70 Complete [65.7% progress]:
+2025-08-31 11:36:37,450 - src.training.train - INFO -   Train Loss: 4.186284 (+0.107274)
+2025-08-31 11:36:37,450 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,450 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,450 - src.training.train - INFO -   Time:       0.07s (est. 2s remaining)
+2025-08-31 11:36:37,450 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,451 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,451 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,451 - src.training.train - INFO - Epoch 47/70 - Training Phase
+2025-08-31 11:36:37,454 - src.training.train - INFO -     Batch   1/ 22 | Loss: 3.164137 | Avg Loss: 3.164137 | Progress:   4.5%
+2025-08-31 11:36:37,469 - src.training.train - INFO -     Batch   6/ 22 | Loss: 3.136670 | Avg Loss: 3.769922 | Progress:  27.3%
+2025-08-31 11:36:37,485 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.528701 | Avg Loss: 4.315003 | Progress:  50.0%
+2025-08-31 11:36:37,500 - src.training.train - INFO -     Batch  16/ 22 | Loss: 2.648787 | Avg Loss: 4.054114 | Progress:  72.7%
+2025-08-31 11:36:37,513 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.072565 | Avg Loss: 4.072721 | Progress:  95.5%
+2025-08-31 11:36:37,517 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.380267 | Avg Loss: 4.132155 | Progress: 100.0%
+2025-08-31 11:36:37,517 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,517 - src.training.train - INFO -       Loss range: 2.648787 to 6.661409
+2025-08-31 11:36:37,517 - src.training.train - INFO -       Gradient norms: avg=4.0906, max=11.2495
+2025-08-31 11:36:37,518 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,518 - src.training.train - INFO - Epoch 47/70 Complete [67.1% progress]:
+2025-08-31 11:36:37,518 - src.training.train - INFO -   Train Loss: 4.132155 (-0.054129)
+2025-08-31 11:36:37,518 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,518 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,518 - src.training.train - INFO -   Time:       0.07s (est. 2s remaining)
+2025-08-31 11:36:37,518 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,518 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,518 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,519 - src.training.train - INFO - Epoch 48/70 - Training Phase
+2025-08-31 11:36:37,523 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.107569 | Avg Loss: 5.107569 | Progress:   4.5%
+2025-08-31 11:36:37,536 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.461277 | Avg Loss: 3.839268 | Progress:  27.3%
+2025-08-31 11:36:37,548 - src.training.train - INFO -     Batch  11/ 22 | Loss: 3.060817 | Avg Loss: 3.847583 | Progress:  50.0%
+2025-08-31 11:36:37,561 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.417290 | Avg Loss: 3.930744 | Progress:  72.7%
+2025-08-31 11:36:37,574 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.819563 | Avg Loss: 4.143351 | Progress:  95.5%
+2025-08-31 11:36:37,577 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.177656 | Avg Loss: 4.054001 | Progress: 100.0%
+2025-08-31 11:36:37,577 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,577 - src.training.train - INFO -       Loss range: 2.157751 to 6.849970
+2025-08-31 11:36:37,577 - src.training.train - INFO -       Gradient norms: avg=3.2784, max=8.0739
+2025-08-31 11:36:37,577 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,577 - src.training.train - INFO - Epoch 48/70 Complete [68.6% progress]:
+2025-08-31 11:36:37,577 - src.training.train - INFO -   Train Loss: 4.054001 (-0.078154)
+2025-08-31 11:36:37,577 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,577 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,577 - src.training.train - INFO -   Time:       0.06s (est. 1s remaining)
+2025-08-31 11:36:37,577 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,578 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,578 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,578 - src.training.train - INFO - Epoch 49/70 - Training Phase
+2025-08-31 11:36:37,583 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.389178 | Avg Loss: 4.389178 | Progress:   4.5%
+2025-08-31 11:36:37,601 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.445740 | Avg Loss: 4.206941 | Progress:  27.3%
+2025-08-31 11:36:37,617 - src.training.train - INFO -     Batch  11/ 22 | Loss: 5.321244 | Avg Loss: 4.001643 | Progress:  50.0%
+2025-08-31 11:36:37,628 - src.training.train - INFO -     Batch  16/ 22 | Loss: 5.575103 | Avg Loss: 4.406578 | Progress:  72.7%
+2025-08-31 11:36:37,640 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.133327 | Avg Loss: 4.125140 | Progress:  95.5%
+2025-08-31 11:36:37,644 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.913096 | Avg Loss: 4.070047 | Progress: 100.0%
+2025-08-31 11:36:37,644 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,644 - src.training.train - INFO -       Loss range: 2.445740 to 6.755623
+2025-08-31 11:36:37,644 - src.training.train - INFO -       Gradient norms: avg=3.0948, max=6.6018
+2025-08-31 11:36:37,644 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,644 - src.training.train - INFO - Epoch 49/70 Complete [70.0% progress]:
+2025-08-31 11:36:37,644 - src.training.train - INFO -   Train Loss: 4.070047 (+0.016047)
+2025-08-31 11:36:37,644 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,644 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,645 - src.training.train - INFO -   Time:       0.07s (est. 1s remaining)
+2025-08-31 11:36:37,645 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,645 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,645 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,645 - src.training.train - INFO - Epoch 50/70 - Training Phase
+2025-08-31 11:36:37,648 - src.training.train - INFO -     Batch   1/ 22 | Loss: 6.479747 | Avg Loss: 6.479747 | Progress:   4.5%
+2025-08-31 11:36:37,663 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.435088 | Avg Loss: 4.643142 | Progress:  27.3%
+2025-08-31 11:36:37,678 - src.training.train - INFO -     Batch  11/ 22 | Loss: 4.764853 | Avg Loss: 4.374261 | Progress:  50.0%
+2025-08-31 11:36:37,689 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.540700 | Avg Loss: 4.214994 | Progress:  72.7%
+2025-08-31 11:36:37,702 - src.training.train - INFO -     Batch  21/ 22 | Loss: 5.148695 | Avg Loss: 4.144024 | Progress:  95.5%
+2025-08-31 11:36:37,705 - src.training.train - INFO -     Batch  22/ 22 | Loss: 2.098690 | Avg Loss: 4.051055 | Progress: 100.0%
+2025-08-31 11:36:37,705 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,705 - src.training.train - INFO -       Loss range: 2.044482 to 6.479747
+2025-08-31 11:36:37,705 - src.training.train - INFO -       Gradient norms: avg=3.9048, max=9.4443
+2025-08-31 11:36:37,705 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,705 - src.training.train - INFO - Epoch 50/70 Complete [71.4% progress]:
+2025-08-31 11:36:37,706 - src.training.train - INFO -   Train Loss: 4.051055 (-0.018993)
+2025-08-31 11:36:37,706 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,706 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,706 - src.training.train - INFO -   Time:       0.06s (est. 1s remaining)
+2025-08-31 11:36:37,706 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,706 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,706 - src.training.train - INFO -   📊 Summary: Model performance is IMPROVING, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,706 - src.training.train - INFO - Epoch 51/70 - Training Phase
+2025-08-31 11:36:37,711 - src.training.train - INFO -     Batch   1/ 22 | Loss: 4.470042 | Avg Loss: 4.470042 | Progress:   4.5%
+2025-08-31 11:36:37,726 - src.training.train - INFO -     Batch   6/ 22 | Loss: 4.526107 | Avg Loss: 4.063975 | Progress:  27.3%
+2025-08-31 11:36:37,738 - src.training.train - INFO -     Batch  11/ 22 | Loss: 1.642720 | Avg Loss: 3.698105 | Progress:  50.0%
+2025-08-31 11:36:37,751 - src.training.train - INFO -     Batch  16/ 22 | Loss: 3.728582 | Avg Loss: 4.041978 | Progress:  72.7%
+2025-08-31 11:36:37,767 - src.training.train - INFO -     Batch  21/ 22 | Loss: 3.731141 | Avg Loss: 4.103393 | Progress:  95.5%
+2025-08-31 11:36:37,771 - src.training.train - INFO -     Batch  22/ 22 | Loss: 4.484550 | Avg Loss: 4.120718 | Progress: 100.0%
+2025-08-31 11:36:37,771 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,771 - src.training.train - INFO -       Loss range: 1.459887 to 6.281782
+2025-08-31 11:36:37,771 - src.training.train - INFO -       Gradient norms: avg=3.4308, max=8.2879
+2025-08-31 11:36:37,771 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,771 - src.training.train - INFO - Epoch 51/70 Complete [72.9% progress]:
+2025-08-31 11:36:37,771 - src.training.train - INFO -   Train Loss: 4.120718 (+0.069664)
+2025-08-31 11:36:37,771 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,772 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,772 - src.training.train - INFO -   Time:       0.06s (est. 1s remaining)
+2025-08-31 11:36:37,772 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,772 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,772 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,772 - src.training.train - INFO - Epoch 52/70 - Training Phase
+2025-08-31 11:36:37,776 - src.training.train - INFO -     Batch   1/ 22 | Loss: 5.158892 | Avg Loss: 5.158892 | Progress:   4.5%
+2025-08-31 11:36:37,790 - src.training.train - INFO -     Batch   6/ 22 | Loss: 2.019638 | Avg Loss: 4.257903 | Progress:  27.3%
+2025-08-31 11:36:37,803 - src.training.train - INFO -     Batch  11/ 22 | Loss: 2.838271 | Avg Loss: 3.864470 | Progress:  50.0%
+2025-08-31 11:36:37,814 - src.training.train - INFO -     Batch  16/ 22 | Loss: 4.923139 | Avg Loss: 4.111025 | Progress:  72.7%
+2025-08-31 11:36:37,826 - src.training.train - INFO -     Batch  21/ 22 | Loss: 4.303365 | Avg Loss: 4.102630 | Progress:  95.5%
+2025-08-31 11:36:37,828 - src.training.train - INFO -     Batch  22/ 22 | Loss: 5.892173 | Avg Loss: 4.183973 | Progress: 100.0%
+2025-08-31 11:36:37,828 - src.training.train - INFO -     Training epoch stats:
+2025-08-31 11:36:37,828 - src.training.train - INFO -       Loss range: 2.019638 to 6.245116
+2025-08-31 11:36:37,828 - src.training.train - INFO -       Gradient norms: avg=3.8069, max=11.7160
+2025-08-31 11:36:37,828 - src.training.train - INFO -       GPU memory: 0.02GB used, 0.04GB cached
+2025-08-31 11:36:37,829 - src.training.train - INFO - Epoch 52/70 Complete [74.3% progress]:
+2025-08-31 11:36:37,829 - src.training.train - INFO -   Train Loss: 4.183973 (+0.063254)
+2025-08-31 11:36:37,829 - src.training.train - INFO -   Val Loss:   N/A (validation disabled)
+2025-08-31 11:36:37,829 - src.training.train - INFO -   Best Val:   N/A (validation disabled)
+2025-08-31 11:36:37,829 - src.training.train - INFO -   Time:       0.06s (est. 1s remaining)
+2025-08-31 11:36:37,829 - src.training.train - INFO -   LR:         0.001000
+2025-08-31 11:36:37,829 - src.training.train - INFO -   GPU Mem:    0.02GB
+2025-08-31 11:36:37,829 - src.training.train - INFO -   📊 Summary: Model performance is PLATEAU, training speed is FAST (without validation (using training loss))
+2025-08-31 11:36:37,829 - src.training.train - INFO - Early stopping triggered after 12 epochs without improvement
+2025-08-31 11:36:37,830 - src.training.train - INFO - Restored best weights with validation loss: 4.040700
+2025-08-31 11:36:37,830 - src.training.train - INFO - Early stopping at epoch 52 (training loss stopped improving)
+2025-08-31 11:36:37,830 - src.training.train - INFO - Training completed!
+2025-08-31 11:36:37,830 - src.training.train - INFO - Total epochs: 52
+2025-08-31 11:36:37,830 - src.training.train - INFO - Total time: 0.06 minutes
+2025-08-31 11:36:37,830 - src.training.train - INFO - Best train loss: 4.040700 (no validation)
+2025-08-31 11:36:37,830 - src.training.train - INFO - Final val loss: N/A (validation disabled)
+2025-08-31 11:36:37,831 - src.training.train - INFO - Final train loss: 4.183973
+2025-08-31 11:36:37,831 - src.training.train - INFO -   Loss improvement: train +12.5%
+2025-08-31 11:36:37,831 - src.training.train - INFO -   Training efficiency: 847.1 epochs/min, 0.1s/epoch avg
+2025-08-31 11:36:37,831 - src.training.train - INFO - 🎯 Training Summary: stopped early (model stopped improving), took quick time (0.1 min)
+2025-08-31 11:36:37,834 - __main__ - INFO - Training Results:
+2025-08-31 11:36:37,834 - __main__ - INFO - ==================================================
+2025-08-31 11:36:37,834 - __main__ - INFO - LSTM TRAINING SUMMARY
+2025-08-31 11:36:37,834 - __main__ - INFO - ==================================================
+2025-08-31 11:36:37,834 - __main__ - INFO - Total Epochs: 52
+2025-08-31 11:36:37,834 - __main__ - INFO - Best Val Loss: N/A (validation disabled)
+2025-08-31 11:36:37,834 - __main__ - INFO - Final Train Loss: 4.183973
+2025-08-31 11:36:37,834 - __main__ - INFO - Final Val Loss: N/A (validation disabled)
+2025-08-31 11:36:37,835 - __main__ - INFO - Training Time: 0.06 minutes
+2025-08-31 11:36:37,835 - __main__ - INFO - Avg Time/Epoch: 0.07 seconds
+2025-08-31 11:36:37,835 - __main__ - INFO - Early Stopped: True
+2025-08-31 11:36:37,835 - __main__ - INFO - Device: cuda
+2025-08-31 11:36:37,835 - __main__ - INFO - ==================================================
+2025-08-31 11:36:37,835 - __main__ - INFO - 
+⏱️  Step 3 (Model Training) completed in 4.5 seconds
+
+2025-08-31 11:36:37,835 - __main__ - INFO - ============================================================
+2025-08-31 11:36:37,835 - __main__ - INFO - STEP 4: MODEL EVALUATION
+2025-08-31 11:36:37,835 - __main__ - INFO - ============================================================
+2025-08-31 11:36:37,835 - src.evaluation.evaluate - INFO - Starting complete model evaluation...
+2025-08-31 11:36:37,836 - src.evaluation.evaluate - INFO - Evaluator initialized with device: cuda
+2025-08-31 11:36:37,836 - src.evaluation.evaluate - INFO - Generating predictions on test data...
+2025-08-31 11:36:37,842 - src.evaluation.evaluate - INFO - Generated 162 predictions
+2025-08-31 11:36:37,842 - src.evaluation.evaluate - INFO - Prediction range: [-0.1619, 0.2666]
+2025-08-31 11:36:37,842 - src.evaluation.evaluate - INFO - Actual range: [-2.7594, 3.0165]
+2025-08-31 11:36:37,842 - src.evaluation.evaluate - INFO - Calculating evaluation metrics...
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO - Evaluation metrics calculated:
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   RMSE: 1.074509
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   MAE: 0.853497
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   Directional Accuracy: 52.47%
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   R²: 0.0069
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   MAPE (robust): 123391.56%
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO -   SMAPE: 170.46%
+2025-08-31 11:36:37,843 - src.evaluation.evaluate - INFO - 📈 Model Quality: FAIR direction prediction (52.5%), MODERATE error rate, WEAK correlation
+2025-08-31 11:36:37,844 - src.evaluation.evaluate - INFO - Creating evaluation visualizations with enhanced labeling...
+2025-08-31 11:36:39,700 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-08-31 11:36:39,703 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-08-31 11:36:40,079 - src.evaluation.evaluate - INFO - Created 4 visualization plots
+2025-08-31 11:36:40,080 - src.evaluation.evaluate - INFO - Model evaluation completed successfully
+2025-08-31 11:36:40,080 - __main__ - INFO - Evaluation completed successfully
+2025-08-31 11:36:40,080 - __main__ - INFO - Plots saved to: results/plots/
+2025-08-31 11:36:40,080 - __main__ - INFO - 
+⏱️  Step 4 (Model Evaluation) completed in 2.2 seconds
+
+2025-08-31 11:36:40,080 - __main__ - INFO - ============================================================
+2025-08-31 11:36:40,080 - __main__ - INFO - STEP 5: SAVING FINAL RESULTS
+2025-08-31 11:36:40,080 - __main__ - INFO - ============================================================
+2025-08-31 11:36:40,080 - __main__ - INFO - Final results saved to: results/final_results.json
+2025-08-31 11:36:40,080 - __main__ - INFO - ============================================================
+2025-08-31 11:36:40,080 - __main__ - INFO - PIPELINE EXECUTION COMPLETED SUCCESSFULLY
+2025-08-31 11:36:40,080 - __main__ - INFO - ============================================================
+2025-08-31 11:36:40,081 - __main__ - INFO - Best train loss: 4.040700 (no validation)
+2025-08-31 11:36:40,081 - __main__ - INFO - Test RMSE: 1.074509
+2025-08-31 11:36:40,081 - __main__ - INFO - Test MAE: 0.853497
+2025-08-31 11:36:40,081 - __main__ - INFO - Directional accuracy: 52.47%
+2025-08-31 11:36:40,081 - __main__ - INFO - Training time: 0.1 minutes
+2025-08-31 11:36:40,081 - __main__ - INFO - Model saved at: results/models/best_model.pt
+2025-08-31 11:36:40,081 - __main__ - INFO - 🎯 FINAL RESULT: FAIR iron ore price forecasting model - predicts price direction correctly 52.5% of the time
+2025-08-31 11:36:40,081 - __main__ - INFO - ============================================================
+2025-08-31 11:36:40,081 - __main__ - INFO - 
+⏱️  Step 5 (Results Saving) completed in 0.0 seconds
+
+2025-08-31 11:36:40,081 - __main__ - INFO - ================================================================================
+2025-08-31 11:36:40,081 - __main__ - INFO - ENHANCED PIPELINE EXECUTION SUMMARY
+2025-08-31 11:36:40,081 - __main__ - INFO - ================================================================================
+2025-08-31 11:36:40,081 - __main__ - INFO - Total execution time: 6.9 seconds (0.1 minutes)
+2025-08-31 11:36:40,081 - __main__ - INFO - Training time: 0.1 min (53.6% of total)
+2025-08-31 11:36:40,081 - __main__ - INFO - Peak GPU memory usage: 0.03 GB
+2025-08-31 11:36:40,082 - __main__ - INFO - Results saved to: /home/wh_wang/wsl_projects/lstm/results
+2025-08-31 11:36:40,082 - __main__ - INFO - ================================================================================
+2025-08-31 11:36:40,082 - __main__ - INFO - ✅ LSTM IRON ORE FORECASTING PIPELINE COMPLETED SUCCESSFULLY!
+2025-08-31 11:36:40,082 - __main__ - INFO - ================================================================================

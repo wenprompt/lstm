@@ -21,6 +21,11 @@ import copy
 logger = logging.getLogger(__name__)
 
 
+class InputFeatureMismatchError(ValueError):
+    """Raised when input_size does not match configured feature dimensionality."""
+    pass
+
+
 class IronOreLSTM(nn.Module):
     """
     Bidirectional LSTM model for iron ore price forecasting.
@@ -184,13 +189,10 @@ class IronOreLSTM(nn.Module):
         # Validate input dimensions with detailed error reporting
         if features != self.input_size:
             logger.error(
-                f"Input feature mismatch: model expects {self.input_size} features, "
-                f"received {features} features in tensor shape {x.shape}"
+                "Input feature mismatch: expected %d, got %d (tensor shape %s)",
+                self.input_size, features, tuple(x.shape)
             )
-            raise ValueError(
-                f"Expected {self.input_size} input features, got {features}. "
-                f"Check your data preprocessing and feature selection in config."
-            )
+            raise InputFeatureMismatchError(f"expected {self.input_size}, got {features}")
             
         # Log forward pass details (only in debug mode to avoid spam)
         if logger.isEnabledFor(logging.DEBUG):
@@ -201,6 +203,10 @@ class IronOreLSTM(nn.Module):
         # lstm_out shape: (batch_size, seq_len, hidden_size * num_directions)
         # hidden states are initialized to zeros automatically
         if lengths is not None:
+            if lengths.dim() != 1 or lengths.shape[0] != batch_size:
+                raise ValueError(
+                    f"lengths must be 1D with size {batch_size}, got shape {tuple(lengths.shape)}"
+                )
             # lengths: 1D tensor of actual sequence lengths per sample
             packed = pack_padded_sequence(
                 x, lengths.cpu(), batch_first=True, enforce_sorted=False

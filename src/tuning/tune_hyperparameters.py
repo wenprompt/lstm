@@ -35,7 +35,7 @@ from src.training.train import create_trainer
 SEARCH_SPACE = {
     "learning_rate": [0.001, 0.0005],
     "gradient_clip_norm": [0.5, 0.3, 0.1],
-    "hidden_size": [64, 96, 128],
+    "hidden_size": [8, 16, 32],
     "number_of_layers": [1, 2],
     "dropout_rate": [0.2, 0.35, 0.5],
 }
@@ -165,8 +165,12 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
             "final_epoch": training_results.get("final_epoch", 0),
             "training_time": training_results.get("training_time", 0.0),
             "eval_set_used": "test",  # Always test set for consistent evaluation
-            "predictions": json.dumps(predictions.tolist()),  # Add predictions to results
-            "test_y_actual": json.dumps(actual_values.tolist()),  # Use actual values that match predictions
+            "predictions": json.dumps(
+                predictions.tolist()
+            ),  # Add predictions to results
+            "test_y_actual": json.dumps(
+                actual_values.tolist()
+            ),  # Use actual values that match predictions
         }
 
         logger.info(
@@ -196,6 +200,7 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
             # Best-effort cleanup between trials
             del trainer, model
             import torch as _torch  # local import to avoid top-level dependency
+
             if _torch.cuda.is_available():
                 _torch.cuda.empty_cache()
         except Exception:
@@ -205,7 +210,7 @@ def run_trial(config: Dict[str, Any]) -> Dict[str, Any]:
 # --- Main Execution ---
 
 
-def main():
+def main() -> None:
     """Main function to run the hyperparameter tuning grid search."""
     logger.info("🚀 Starting hyperparameter tuning script...")
 
