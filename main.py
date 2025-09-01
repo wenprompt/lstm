@@ -460,10 +460,13 @@ def log_system_information() -> None:
     logger.info(f"  RAM: {psutil.virtual_memory().total / (1024**3):.1f} GB")
 
     if torch.cuda.is_available():
-        logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
-        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        logger.info(f"  GPU Memory: {gpu_memory:.1f} GB")  # type: ignore
-        logger.info(f"  CUDA Version: {torch.version.cuda}")  # type: ignore
+        try:
+            logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
+            # Skip memory detection as it may hang in some environments
+            logger.info("  GPU Memory: Available (detection skipped)")
+            logger.info(f"  CUDA Version: {torch.version.cuda}")  # type: ignore
+        except Exception as e:
+            logger.info(f"  GPU: CUDA available but detection failed: {e}")
     else:
         logger.info("  GPU: None available (using CPU)")
 

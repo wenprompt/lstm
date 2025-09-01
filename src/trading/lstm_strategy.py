@@ -98,7 +98,8 @@ class LSTMTradingStrategy:
             "LONG", "SHORT", or None
         """
         # Convert log returns to simple returns first (best practice)
-        simple_return = np.exp(predicted_ln_returns) - 1
+        # Note: predicted_ln_returns are in percentage form (×100), so divide by 100 first
+        simple_return = np.exp(predicted_ln_returns / 100) - 1
         
         # Calculate predicted price difference using simple returns
         price_difference = raw_price * simple_return
