@@ -33,6 +33,7 @@ from src.models.model import create_model, get_model_summary
 from src.training.train import create_trainer
 from src.evaluation.evaluate import evaluate_model
 from src.evaluation.test_results_exporter import export_test_results
+from src.trading.lstm_strategy import run_lstm_trading_strategy
 
 # Ensure results and logs directories exist for logging
 Path("results/logs/training").mkdir(parents=True, exist_ok=True)
@@ -323,9 +324,21 @@ def evaluate_trained_model(
         save_dir=Path("results")
     )
     
-    logger.info("Evaluation completed successfully")
+    # Run trading strategy using exported test results
+    logger.info("Executing LSTM trading strategy...")
+    test_results_path = Path(test_export_results['export_files']['csv'])
+    trading_results = run_lstm_trading_strategy(
+        test_results_path=test_results_path,
+        save_dir=Path("results")
+    )
+    
+    logger.info("Evaluation and trading strategy completed successfully")
     logger.info("Plots saved to: results/plots/")
-    logger.info(f"Detailed test results saved to: {test_export_results['export_files']['csv']}")
+    logger.info(f"Test results saved to: {test_export_results['export_files']['csv']}")
+    logger.info(f"Trading results saved to: {trading_results['export_files']['performance_summary']}")
+
+    # Add trading results to evaluation results for final output
+    evaluation_results["trading_strategy"] = trading_results
 
     return evaluation_results
 
@@ -447,10 +460,13 @@ def log_system_information() -> None:
     logger.info(f"  RAM: {psutil.virtual_memory().total / (1024**3):.1f} GB")
 
     if torch.cuda.is_available():
-        logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
-        gpu_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        logger.info(f"  GPU Memory: {gpu_memory:.1f} GB")  # type: ignore
-        logger.info(f"  CUDA Version: {torch.version.cuda}")  # type: ignore
+        try:
+            logger.info(f"  GPU: {torch.cuda.get_device_name(0)}")
+            # Skip memory detection as it may hang in some environments
+            logger.info("  GPU Memory: Available (detection skipped)")
+            logger.info(f"  CUDA Version: {torch.version.cuda}")  # type: ignore
+        except Exception as e:
+            logger.info(f"  GPU: CUDA available but detection failed: {e}")
     else:
         logger.info("  GPU: None available (using CPU)")
 

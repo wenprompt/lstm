@@ -10,7 +10,7 @@ wheels/
 .venv
 
 # data information that might be sensitive
-/data
+# /data
 
 #serena MCP
 .serena
