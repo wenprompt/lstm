@@ -33,6 +33,7 @@ from src.models.model import create_model, get_model_summary
 from src.training.train import create_trainer
 from src.evaluation.evaluate import evaluate_model
 from src.evaluation.test_results_exporter import export_test_results
+from src.trading.lstm_strategy import run_lstm_trading_strategy
 
 # Ensure results and logs directories exist for logging
 Path("results/logs/training").mkdir(parents=True, exist_ok=True)
@@ -323,9 +324,21 @@ def evaluate_trained_model(
         save_dir=Path("results")
     )
     
-    logger.info("Evaluation completed successfully")
+    # Run trading strategy using exported test results
+    logger.info("Executing LSTM trading strategy...")
+    test_results_path = Path(test_export_results['export_files']['csv'])
+    trading_results = run_lstm_trading_strategy(
+        test_results_path=test_results_path,
+        save_dir=Path("results")
+    )
+    
+    logger.info("Evaluation and trading strategy completed successfully")
     logger.info("Plots saved to: results/plots/")
-    logger.info(f"Detailed test results saved to: {test_export_results['export_files']['csv']}")
+    logger.info(f"Test results saved to: {test_export_results['export_files']['csv']}")
+    logger.info(f"Trading results saved to: {trading_results['export_files']['performance_summary']}")
+
+    # Add trading results to evaluation results for final output
+    evaluation_results["trading_strategy"] = trading_results
 
     return evaluation_results
 
