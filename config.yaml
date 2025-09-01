@@ -65,13 +65,13 @@ training:
   gradient_clip_norm: 0.3 # 1.0 caused some unstability of losses in training
 
   # Loss function (Mean Squared Error for regression)
-  loss_function: "mse"
+  loss_function: "mse" # NOT BEING USED
 
   # Optimizer type
-  optimizer: "adam"
+  optimizer: "adam" # NOT BEING USED
 
 # Data splitting ratios (chronological splits per PRD)
-# Total period: March 30, 2022 - Present (~2.4 years worth, 868 valid samples)
+# Total period: March 30, 2022 - Present (868 valid samples)
 splits:
   # Training set:
   train_ratio: 0.80
@@ -88,7 +88,7 @@ scaling:
   scale_features: true
 
   # Do NOT scale target variable (Y) - already percentage returns
-  scale_target: false
+  scale_target: false # NOT BEING USED
 
 # Model evaluation metrics
 metrics:
