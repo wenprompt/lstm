@@ -5,6 +5,9 @@
 data:
   # Input data file (contains 12 features + Y target variable)
   consolidated_features: "data/processed/consolidated_features_y.pkl"
+  
+  # Continuous futures data (contains raw and adjusted prices)
+  continuous_futures: "data/processed/continuous_futures_m1.pkl"
 
   # Output directories for results
   results_dir: "results"
@@ -33,7 +36,7 @@ model:
   sequence_length: 12
 
   # Number of hidden units in LSTM layers
-  hidden_size: 8
+  hidden_size: 16
 
   # Number of stacked LSTM layers
   number_of_layers: 2
@@ -74,13 +77,13 @@ training:
 # Total period: March 30, 2022 - Present (868 valid samples)
 splits:
   # Training set:
-  train_ratio: 0.70
+  train_ratio: 0.80
 
   # Validation set:
-  val_ratio: 0.15
+  val_ratio: 0.00
 
   # Test set:
-  test_ratio: 0.15
+  test_ratio: 0.20
 
 # Feature scaling configuration
 scaling:

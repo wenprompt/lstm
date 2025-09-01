@@ -2,6 +2,7 @@
   "configuration": {
     "data": {
       "consolidated_features": "data/processed/consolidated_features_y.pkl",
+      "continuous_futures": "data/processed/continuous_futures_m1.pkl",
       "results_dir": "results",
       "plots_dir": "results/plots",
       "models_dir": "results/models"
@@ -19,7 +20,7 @@
     ],
     "model": {
       "sequence_length": 12,
-      "hidden_size": 8,
+      "hidden_size": 16,
       "number_of_layers": 2,
       "dropout_rate": 0.35,
       "bidirectional": true,
@@ -35,9 +36,9 @@
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.7,
-      "val_ratio": 0.15,
-      "test_ratio": 0.15
+      "train_ratio": 0.8,
+      "val_ratio": 0.0,
+      "test_ratio": 0.2
     },
     "scaling": {
       "scale_features": true,
@@ -73,33 +74,33 @@
     }
   },
   "training": {
-    "final_epoch": 70,
-    "total_time_minutes": 0.08997272650400798,
-    "best_val_loss": 2.3807207494974136,
-    "final_train_loss": 4.19268294384605,
-    "final_val_loss": 2.3807207494974136,
-    "early_stopped": false
+    "final_epoch": 54,
+    "total_time_minutes": 0.10268924633661906,
+    "best_val_loss": 4.024665233763781,
+    "final_train_loss": 4.085927876559171,
+    "final_val_loss": 4.085927876559171,
+    "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.139851608406154,
-      "mae": 0.922954261302948,
-      "mse": 1.2992616891860962,
-      "directional_accuracy": 47.89915966386555,
-      "r_squared": -0.0790337324142456,
-      "mape": 314774.03125,
-      "smape": 150.79107666015625
+      "rmse": 1.1308865189794728,
+      "mae": 0.9140819311141968,
+      "mse": 1.2789043188095093,
+      "directional_accuracy": 53.086419753086425,
+      "r_squared": -0.10006654262542725,
+      "mape": 409805.1875,
+      "smape": 154.78016662597656
     },
-    "test_samples": 119,
+    "test_samples": 162,
     "prediction_statistics": {
-      "mean_prediction": 0.33116137981414795,
-      "std_prediction": 0.13561902940273285,
-      "min_prediction": 0.055951982736587524,
-      "max_prediction": 0.5617462992668152
+      "mean_prediction": 0.32953783869743347,
+      "std_prediction": 0.2646433413028717,
+      "min_prediction": -0.0221687201410532,
+      "max_prediction": 0.8013466000556946
     },
     "actual_statistics": {
-      "mean_actual": 0.04438357427716255,
-      "std_actual": 1.0973137617111206,
+      "mean_actual": 0.06015646830201149,
+      "std_actual": 1.0782253742218018,
       "min_actual": -2.7594096660614014,
       "max_actual": 3.016491174697876
     },

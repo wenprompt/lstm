@@ -32,6 +32,7 @@ from src.data.dataset import create_dataloaders, get_data_info
 from src.models.model import create_model, get_model_summary
 from src.training.train import create_trainer
 from src.evaluation.evaluate import evaluate_model
+from src.evaluation.test_results_exporter import export_test_results
 
 # Ensure results and logs directories exist for logging
 Path("results/logs/training").mkdir(parents=True, exist_ok=True)
@@ -312,8 +313,19 @@ def evaluate_trained_model(
         save_dir=Path("results"),
     )
 
+    # Export detailed test results DataFrame
+    logger.info("Exporting detailed test results DataFrame...")
+    test_export_results = export_test_results(
+        model=model,
+        test_loader=test_loader,
+        device=device,
+        config=config,
+        save_dir=Path("results")
+    )
+    
     logger.info("Evaluation completed successfully")
     logger.info("Plots saved to: results/plots/")
+    logger.info(f"Detailed test results saved to: {test_export_results['export_files']['csv']}")
 
     return evaluation_results
 
