@@ -320,19 +320,18 @@ class LSTMTrainer:
                 batch_loss = loss.item()
 
                 # Collect prediction statistics
-                with torch.no_grad():
-                    pred_mean = predictions.mean().item()
-                    pred_std = (
-                        predictions.std().item() if predictions.numel() > 1 else 0.0
-                    )
-                    target_mean = targets.mean().item()
-                    predictions_stats.append(
-                        {
-                            "pred_mean": pred_mean,
-                            "pred_std": pred_std,
-                            "target_mean": target_mean,
-                        }
-                    )
+                pred_mean = predictions.mean().item()
+                pred_std = (
+                    predictions.std().item() if predictions.numel() > 1 else 0.0
+                )
+                target_mean = targets.mean().item()
+                predictions_stats.append(
+                    {
+                        "pred_mean": pred_mean,
+                        "pred_std": pred_std,
+                        "target_mean": target_mean,
+                    }
+                )
 
                 # Accumulate loss
                 total_loss += batch_loss

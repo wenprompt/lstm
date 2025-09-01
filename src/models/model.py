@@ -212,15 +212,16 @@ class IronOreLSTM(nn.Module):
                 x, lengths.cpu(), batch_first=True, enforce_sorted=False
             )
             packed_out, (hidden, cell) = self.lstm(packed)
-            # For LSTM, last-layer hidden states summarize sequences.
-            # Shape: (num_layers * num_directions, batch, hidden_size)
-            if self.bidirectional:
-                last_output = torch.cat((hidden[-2], hidden[-1]), dim=1)
-            else:
-                last_output = hidden[-1]
         else:
             lstm_out, (hidden, cell) = self.lstm(x)
-            last_output = lstm_out[:, -1, :]
+        
+        # Unified output extraction using hidden state
+        # For LSTM, last-layer hidden states summarize sequences.
+        # Shape: (num_layers * num_directions, batch, hidden_size)
+        if self.bidirectional:
+            last_output = torch.cat((hidden[-2], hidden[-1]), dim=1)
+        else:
+            last_output = hidden[-1]
 
         # last_output shape: (batch_size, hidden_size * num_directions)
 
