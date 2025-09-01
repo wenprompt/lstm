@@ -10,7 +10,12 @@ wheels/
 .venv
 
 # data information that might be sensitive
-# /data
+/data
+/results/logs/
+/results/plots/
+/results/trading/
+/results/model_results/
+
 
 #serena MCP
 .serena

@@ -312,9 +312,7 @@ class DataBuildingValidator:
         logger.info(
             f"  ✅ Feature count match: {alignment_results['feature_count_match']}"
         )
-        logger.info(
-            f"  ✅ Feature set match: {alignment_results['feature_set_match']}"
-        )
+        logger.info(f"  ✅ Feature set match: {alignment_results['feature_set_match']}")
 
         if alignment_results["missing_features"]:
             logger.error(
@@ -332,10 +330,14 @@ class DataBuildingValidator:
             corr = alignment_results.get("y_correlation")
             max_diff = alignment_results.get("y_max_difference")
             logger.info(
-                f"     Correlation: {corr:.6f}" if isinstance(corr, (float, int, np.floating)) else "     Correlation: N/A"
+                f"     Correlation: {corr:.6f}"
+                if isinstance(corr, (float, int, np.floating))
+                else "     Correlation: N/A"
             )
             logger.info(
-                f"     Max difference: {max_diff:.6f}" if isinstance(max_diff, (float, int, np.floating)) else "     Max difference: N/A"
+                f"     Max difference: {max_diff:.6f}"
+                if isinstance(max_diff, (float, int, np.floating))
+                else "     Max difference: N/A"
             )
 
         return alignment_results
@@ -384,25 +386,39 @@ class DataBuildingValidator:
                 if matching_col:
                     # Validate forward-fill worked correctly
                     raw_matching_col = next(
-                        (c for c in weekly_raw.columns if c.lower() == feature_name.lower()), None
+                        (
+                            c
+                            for c in weekly_raw.columns
+                            if c.lower() == feature_name.lower()
+                        ),
+                        None,
                     )
                     if raw_matching_col is None:
                         logger.warning(
                             f"     Could not find exact column '{feature_name}' in {file_path.name}; attempting substring match."
                         )
                         raw_matching_col = next(
-                            (c for c in weekly_raw.columns if feature_name.lower() in c.lower()), None
+                            (
+                                c
+                                for c in weekly_raw.columns
+                                if feature_name.lower() in c.lower()
+                            ),
+                            None,
                         )
                     if not raw_matching_col:
-                        logger.error(f"     Column matching failed for {feature_name} in {file_path.name}")
+                        logger.error(
+                            f"     Column matching failed for {feature_name} in {file_path.name}"
+                        )
                         continue
                     original_count = weekly_raw[raw_matching_col].notna().sum()
                     filled_count = int(consolidated_df[matching_col].notna().sum())
-                    
+
                     forward_fill_results[feature_name] = {
                         "original_points": int(original_count),
                         "filled_points": filled_count,
-                        "fill_ratio": (filled_count / original_count) if original_count > 0 else 0.0,
+                        "fill_ratio": (filled_count / original_count)
+                        if original_count > 0
+                        else 0.0,
                         "matching_column": matching_col,
                         "raw_matching_column": raw_matching_col,
                         "forward_fill_effective": filled_count > original_count,
@@ -699,7 +715,9 @@ def main():
     mapping = results.get("m1_mapping")
     if isinstance(mapping, dict):
         mapping_passed = sum(mapping.values())
-        print(f"M+1 contract mapping: {mapping_passed}/{len(mapping)} test cases passed")
+        print(
+            f"M+1 contract mapping: {mapping_passed}/{len(mapping)} test cases passed"
+        )
 
     # Date parsing
     date_parsing = results.get("date_parsing")
@@ -712,9 +730,7 @@ def main():
     features = results.get("feature_alignment")
     if isinstance(features, dict) and features.get("file_exists", False):
         actual_features = features.get("actual_features", [])
-        print(
-            f"Feature alignment: {len(actual_features)}/12 features present"
-        )
+        print(f"Feature alignment: {len(actual_features)}/12 features present")
         print(
             f"Target variable Y: {'CALCULATED CORRECTLY' if features.get('y_calculation_correct', False) else 'ISSUES DETECTED'}"
         )

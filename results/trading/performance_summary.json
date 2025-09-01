@@ -1,41 +1,41 @@
 {
   "strategy_name": "LSTM Iron Ore Momentum Strategy",
-  "buffer_threshold": 1.2,
+  "buffer_threshold": 0.1,
   "position_size": 1.0,
-  "backtest_timestamp": "2025-09-01T20:26:35.896740",
+  "backtest_timestamp": "2025-09-02T01:01:20.798234",
   "performance_metrics": {
     "backtest_summary": {
-      "total_trades": 162,
-      "long_trades": 162,
-      "short_trades": 0,
-      "test_period_days": 162,
-      "trades_per_month": 30.44
+      "total_trades": 118,
+      "long_trades": 112,
+      "short_trades": 6,
+      "test_period_days": 203,
+      "trades_per_month": 17.69418719211823
     },
     "pnl_metrics": {
-      "total_pnl": 49.56,
-      "average_trade_pnl": 0.31,
+      "total_pnl": 19.84,
+      "average_trade_pnl": 0.17,
       "best_trade": 10.57,
       "worst_trade": -6.05,
-      "final_equity": 49.56
+      "final_equity": -2.81
     },
     "win_loss_metrics": {
-      "win_rate_pct": 48.15,
-      "profit_factor": 1.25,
-      "average_win": 3.16,
-      "average_loss": -2.34,
-      "winning_trades": 78,
-      "losing_trades": 84
+      "win_rate_pct": 49.15,
+      "profit_factor": 1.16,
+      "average_win": 2.44,
+      "average_loss": -2.03,
+      "winning_trades": 58,
+      "losing_trades": 60
     },
     "risk_metrics": {
-      "sharpe_ratio": 0.413,
-      "max_drawdown": -146.81,
-      "max_drawdown_pct": -140.1,
-      "volatility_daily": 11.8341
+      "sharpe_ratio": -0.212,
+      "max_drawdown": -84.43,
+      "max_drawdown_pct": -316.34,
+      "volatility_daily": 91.1252
     },
     "time_metrics": {
-      "average_holding_days": 15.0,
-      "longest_trade_days": 31,
-      "shortest_trade_days": 0
+      "average_holding_days": 13.9,
+      "longest_trade_days": 30,
+      "shortest_trade_days": 1
     }
   }
 }

@@ -212,11 +212,11 @@ def get_data_info(dataloader: DataLoader) -> Dict[str, Any]:
             "batch_size": dataloader.batch_size,
             "total_sequences": 0,
             "feature_shape": None,
-            "target_shape": None, 
+            "target_shape": None,
             "feature_dtype": None,
             "target_dtype": None,
         }
-    
+
     # Get first batch to inspect shapes
     first_batch = next(iter(dataloader))
     features, targets = first_batch

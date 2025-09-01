@@ -321,9 +321,7 @@ class LSTMTrainer:
 
                 # Collect prediction statistics
                 pred_mean = predictions.mean().item()
-                pred_std = (
-                    predictions.std().item() if predictions.numel() > 1 else 0.0
-                )
+                pred_std = predictions.std().item() if predictions.numel() > 1 else 0.0
                 target_mean = targets.mean().item()
                 predictions_stats.append(
                     {
@@ -510,7 +508,9 @@ class LSTMTrainer:
             speed = (
                 "FAST"
                 if epoch_time < fast_time
-                else "MEDIUM" if epoch_time < medium_time else "SLOW"
+                else "MEDIUM"
+                if epoch_time < medium_time
+                else "SLOW"
             )
             validation_status = (
                 "with validation monitoring"
@@ -556,7 +556,7 @@ class LSTMTrainer:
         logger.info("Training completed!")
         logger.info(f"Total epochs: {final_epoch}")
         logger.info(f"Total time: {total_time / 60:.2f} minutes")
-        
+
         # Fixed validation logging to show N/A when validation is disabled
         if has_validation:
             logger.info(f"Best validation loss: {best_val_loss:.6f}")
@@ -564,7 +564,7 @@ class LSTMTrainer:
         else:
             logger.info(f"Best train loss: {best_val_loss:.6f} (no validation)")
             logger.info("Final val loss: N/A (validation disabled)")
-        
+
         logger.info(f"Final train loss: {train_loss:.6f}")
 
         # Comprehensive training completion analysis
@@ -581,7 +581,9 @@ class LSTMTrainer:
         time_assessment = (
             "QUICK"
             if total_time < quick_time
-            else "MODERATE" if total_time < moderate_time else "LENGTHY"
+            else "MODERATE"
+            if total_time < moderate_time
+            else "LENGTHY"
         )
 
         # Training efficiency metrics
@@ -657,10 +659,10 @@ class LSTMTrainer:
         best_val_loss = min(self.history["val_loss"])
         best_epoch = self.history["val_loss"].index(best_val_loss) + 1
         total_time = sum(self.history["epoch_times"])
-        
+
         # Check if validation was enabled (all val_loss should be different from train_loss if validation was used)
         has_validation = not all(
-            abs(train - val) < 1e-10 
+            abs(train - val) < 1e-10
             for train, val in zip(self.history["train_loss"], self.history["val_loss"])
         )
 

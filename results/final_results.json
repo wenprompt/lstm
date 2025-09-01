@@ -19,7 +19,7 @@
       "IOCJ Weekly shipment"
     ],
     "model": {
-      "sequence_length": 12,
+      "sequence_length": 14,
       "hidden_size": 16,
       "number_of_layers": 2,
       "dropout_rate": 0.35,
@@ -36,9 +36,9 @@
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.8,
+      "train_ratio": 0.75,
       "val_ratio": 0.0,
-      "test_ratio": 0.2
+      "test_ratio": 0.25
     },
     "scaling": {
       "scale_features": true,
@@ -74,33 +74,33 @@
     }
   },
   "training": {
-    "final_epoch": 54,
-    "total_time_minutes": 0.08400317033131917,
-    "best_val_loss": 4.016350009224632,
-    "final_train_loss": 4.03313098712401,
-    "final_val_loss": 4.03313098712401,
+    "final_epoch": 33,
+    "total_time_minutes": 0.045087186495463054,
+    "best_val_loss": 4.258392572402954,
+    "final_train_loss": 4.341418766975403,
+    "final_val_loss": 4.341418766975403,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.1164484313726948,
-      "mae": 0.8976008892059326,
-      "mse": 1.2464570999145508,
-      "directional_accuracy": 50.617283950617285,
-      "r_squared": -0.07215666770935059,
-      "mape": 319177.71875,
-      "smape": 154.07611083984375
+      "rmse": 1.1037474262211862,
+      "mae": 0.8906765580177307,
+      "mse": 1.2182583808898926,
+      "directional_accuracy": 55.66502463054187,
+      "r_squared": -0.01465463638305664,
+      "mape": 187615.8125,
+      "smape": 163.4151153564453
     },
-    "test_samples": 162,
+    "test_samples": 203,
     "prediction_statistics": {
-      "mean_prediction": 0.2932939827442169,
-      "std_prediction": 0.20149771869182587,
-      "min_prediction": 0.010318389162421227,
-      "max_prediction": 0.6070682406425476
+      "mean_prediction": 0.1628798097372055,
+      "std_prediction": 0.17273706197738647,
+      "min_prediction": -0.13607259094715118,
+      "max_prediction": 0.44032320380210876
     },
     "actual_statistics": {
-      "mean_actual": 0.06015646830201149,
-      "std_actual": 1.0782253742218018,
+      "mean_actual": 0.03978908807039261,
+      "std_actual": 1.095747709274292,
       "min_actual": -2.7594096660614014,
       "max_actual": 3.016491174697876
     },
@@ -110,6 +110,55 @@
       "timeseries": "results/plots/timeseries_comparison.png",
       "residuals": "results/plots/residuals_analysis.png",
       "distributions": "results/plots/distribution_comparison.png"
+    }
+  },
+  "trading_strategy": {
+    "performance": {
+      "backtest_summary": {
+        "total_trades": 118,
+        "long_trades": 112,
+        "short_trades": 6,
+        "test_period_days": 203,
+        "trades_per_month": 17.69418719211823
+      },
+      "pnl_metrics": {
+        "total_pnl": 19.84,
+        "average_trade_pnl": 0.17,
+        "best_trade": 10.57,
+        "worst_trade": -6.05,
+        "final_equity": -2.81
+      },
+      "win_loss_metrics": {
+        "win_rate_pct": 49.15,
+        "profit_factor": 1.16,
+        "average_win": 2.44,
+        "average_loss": -2.03,
+        "winning_trades": 58,
+        "losing_trades": 60
+      },
+      "risk_metrics": {
+        "sharpe_ratio": -0.212,
+        "max_drawdown": -84.43,
+        "max_drawdown_pct": -316.34,
+        "volatility_daily": 91.1252
+      },
+      "time_metrics": {
+        "average_holding_days": 13.9,
+        "longest_trade_days": 30,
+        "shortest_trade_days": 1
+      }
+    },
+    "export_files": {
+      "trade_log": "results/trading/trade_log.csv",
+      "performance_summary": "results/trading/performance_summary.json"
+    },
+    "plot_files": {
+      "equity_curve": "results/plots/trading_equity_curve.png",
+      "trade_analysis": "results/plots/trading_analysis.png"
+    },
+    "strategy_config": {
+      "buffer_threshold": 0.1,
+      "position_size": 1.0
     }
   }
 }

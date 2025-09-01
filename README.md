@@ -91,4 +91,5 @@ During hyperparameter tuning, the model with the **highest composite score** is 
 
 **TO DOUBLE CHECK**
 
-- NOTHING, YAY!
+- realised, unrealised and cumulative PNL is completely wrong in trade_log. Assume that Sharpe ratio is calculated wrongly too, only final PNL is accurate
+- LONG SHORT diagram on trading_analysis is flipped. Believe that trading_equity_curve is wrong too.
