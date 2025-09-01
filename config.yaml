@@ -74,13 +74,13 @@ training:
 # Total period: March 30, 2022 - Present (868 valid samples)
 splits:
   # Training set:
-  train_ratio: 0.80
+  train_ratio: 0.70
 
   # Validation set:
-  val_ratio: 0.00
+  val_ratio: 0.15
 
   # Test set:
-  test_ratio: 0.20
+  test_ratio: 0.15
 
 # Feature scaling configuration
 scaling:

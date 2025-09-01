@@ -19,6 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import mean_squared_error, mean_absolute_error  # type: ignore
+from scipy import stats  # type: ignore
 from torch.utils.data import DataLoader
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
@@ -414,8 +415,6 @@ class ModelEvaluator:
 
         # 3. Q-Q plot
         ax3 = axes[1, 0]
-        from scipy import stats  # type: ignore
-
         stats.probplot(residuals, dist="norm", plot=ax3)
         ax3.get_lines()[0].set_markerfacecolor(palette[0])
         ax3.get_lines()[0].set_markeredgecolor(palette[0])

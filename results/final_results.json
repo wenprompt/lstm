@@ -35,9 +35,9 @@
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.8,
-      "val_ratio": 0.0,
-      "test_ratio": 0.2
+      "train_ratio": 0.7,
+      "val_ratio": 0.15,
+      "test_ratio": 0.15
     },
     "scaling": {
       "scale_features": true,
@@ -73,33 +73,33 @@
     }
   },
   "training": {
-    "final_epoch": 40,
-    "total_time_minutes": 0.06222093105316162,
-    "best_val_loss": 4.08092617446726,
-    "final_train_loss": 4.132849812507629,
-    "final_val_loss": 4.132849812507629,
+    "final_epoch": 65,
+    "total_time_minutes": 0.08546586831410725,
+    "best_val_loss": 2.3682495802640915,
+    "final_train_loss": 4.147810484233656,
+    "final_val_loss": 2.3802655041217804,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.076654011196324,
-      "mae": 0.8555787801742554,
-      "mse": 1.1591838598251343,
-      "directional_accuracy": 50.617283950617285,
-      "r_squared": 0.0029126405715942383,
-      "mape": 59397.0234375,
-      "smape": 176.04685974121094
+      "rmse": 1.1201580542348857,
+      "mae": 0.9030748605728149,
+      "mse": 1.2547540664672852,
+      "directional_accuracy": 47.89915966386555,
+      "r_squared": -0.04207026958465576,
+      "mape": 326775.0625,
+      "smape": 153.52330017089844
     },
-    "test_samples": 162,
+    "test_samples": 119,
     "prediction_statistics": {
-      "mean_prediction": -0.025712445378303528,
-      "std_prediction": 0.11247280985116959,
-      "min_prediction": -0.2649736702442169,
-      "max_prediction": 0.13646870851516724
+      "mean_prediction": 0.277595579624176,
+      "std_prediction": 0.11218569427728653,
+      "min_prediction": 0.08721901476383209,
+      "max_prediction": 0.40000611543655396
     },
     "actual_statistics": {
-      "mean_actual": 0.06015646830201149,
-      "std_actual": 1.0782253742218018,
+      "mean_actual": 0.04438357427716255,
+      "std_actual": 1.0973137617111206,
       "min_actual": -2.7594096660614014,
       "max_actual": 3.016491174697876
     },
