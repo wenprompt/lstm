@@ -239,10 +239,13 @@ class LSTMTradingStrategy:
                 if should_exit:
                     self.close_all_positions(current_date, raw_price, "REVERSAL")
             
-            # Generate new entry signal
-            signal = self.generate_signal(raw_price, predicted_returns)
-            if signal:
-                self.open_position(current_date, raw_price, signal)
+            # Generate new entry signal (but not on month-end days)
+            is_month_end_day = self.is_month_end(current_date, next_date)
+            
+            if not is_month_end_day:  # No new trades on month-end days
+                signal = self.generate_signal(raw_price, predicted_returns)
+                if signal:
+                    self.open_position(current_date, raw_price, signal)
             
             # Calculate daily P&L from closed trades
             daily_pnl = sum(
