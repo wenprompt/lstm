@@ -242,6 +242,19 @@ class DataLoader:
                 f"🎯 Feature Focus: Using all {len(selected_features)} available features for comprehensive analysis"
             )
 
+        # Log top 5 rows of filtered features for inspection
+        logger.info("📊 Feature Data Preview (top 5 rows):")
+        feature_cols = [col for col in train_filtered.columns if col != "Y"]
+        try:
+            preview_data = train_filtered.head(5)
+            logger.info(f"  Features: {feature_cols}")
+            for idx, row in preview_data.iterrows():
+                feature_values = [f"{row[col]:.4f}" for col in feature_cols]
+                target_value = row["Y"]
+                logger.info(f"  Row {idx}: [{', '.join(feature_values)}] → Y={target_value:.6f}")
+        except Exception as e:
+            logger.warning(f"Could not preview feature data: {e}")
+
         return train_filtered, val_filtered, test_filtered
 
     def scale_features(
