@@ -3,14 +3,14 @@
 LSTM-based trading strategy for iron ore futures.
 
 This module implements a momentum-based trading strategy using LSTM predictions:
-- Entry: When predicted price difference exceeds $1.20 threshold
+- Entry: When predicted price difference exceeds BUFFER
 - Exit: When prediction direction reverses OR end-of-month (mandatory)
 - Position: Multiple entries allowed, exit all positions simultaneously
 
 Strategy Logic:
 1. Calculate predicted price: current_price * (1 + predicted_ln_returns)
 2. Price difference: predicted_price - current_price
-3. Enter LONG if price_diff > $1.20, SHORT if price_diff < -$1.20
+3. Enter LONG if price_diff > BUFFER, SHORT if price_diff < -BUFFER
 4. Exit all positions when direction reverses or month ends
 """
 
@@ -28,7 +28,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # Trading constants
-BUFFER_THRESHOLD = 0.30  #  absolute price difference threshold
+BUFFER_THRESHOLD = 0.20  #  absolute price difference threshold
 POSITION_SIZE = 1.0  # Standard position size per signal
 
 
@@ -517,19 +517,16 @@ class LSTMTradingStrategy:
 
             # Calculate percentage returns based on cumulative equity
             daily_returns_pct = []
-            cumulative_equity = 0.0  # Starting equity
+            starting_capital = 1000.00  # Set a realistic starting capital
+            cumulative_equity = starting_capital
 
             for pnl in daily_total_pnl:
-                prev_equity = (
-                    cumulative_equity if cumulative_equity != 0 else 1
-                )  # avoid division by zero
-                new_equity = cumulative_equity + pnl
-
-                # Calculate percentage return
-                daily_return_pct = (pnl / abs(prev_equity)) * 100
+                # Calculate percentage return based on the previous day's equity
+                daily_return_pct = (pnl / cumulative_equity) * 100
                 daily_returns_pct.append(daily_return_pct)
 
-                cumulative_equity = new_equity
+                # Update equity for the next day's calculation
+                cumulative_equity += pnl
 
             sharpe_ratio = (
                 np.mean(daily_returns_pct) / np.std(daily_returns_pct)
@@ -671,9 +668,7 @@ class LSTMTradingStrategy:
         ax2.bar(
             range(len(daily_pnl_to_plot)),
             daily_pnl_to_plot,
-            color=[
-                palette[1] if pnl >= 0 else palette[2] for pnl in daily_pnl_to_plot
-            ],
+            color=[palette[1] if pnl >= 0 else palette[2] for pnl in daily_pnl_to_plot],
         )
         ax2.set_title(
             "Daily Total P&L Distribution (Realized + Unrealized)",

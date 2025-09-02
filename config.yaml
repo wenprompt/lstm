@@ -112,8 +112,7 @@ device:
 # Reproducibility configuration
 reproducibility:
   # Random seed for reproducible results across all components
-  seed: 42
-
+  seed: 50
   # Enable deterministic algorithms (may impact performance)
   deterministic: true
 
