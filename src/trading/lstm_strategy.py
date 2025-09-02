@@ -645,25 +645,43 @@ class LSTMTradingStrategy:
         plt.style.use("seaborn-v0_8-whitegrid")
         palette = sns.color_palette("husl", 8)
 
-        # 1. Equity curve
-        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10))
+        # 1. Equity curve and Daily P&L
+        _, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True)
 
-        # Equity curve
-        ax1.plot(self.equity_curve, color=palette[0], linewidth=2)
-        ax1.set_title("Trading Strategy Equity Curve", fontsize=14, fontweight="bold")
-        ax1.set_ylabel("Cumulative P&L ($)")
+        # Correctly calculate Mark-to-Market (MtM) equity curve
+        # MtM Equity = Cumulative Realized P&L + Current Unrealized P&L
+        cumulative_realized_pnl = np.cumsum(self.daily_realized_pnl)
+        mark_to_market_equity_curve = (
+            cumulative_realized_pnl + self.daily_unrealized_pnl
+        )
+
+        # Equity curve (now showing MtM equity)
+        ax1.plot(mark_to_market_equity_curve, color=palette[0], linewidth=2)
+        ax1.set_title(
+            "Mark-to-Market Equity Curve (Realized + Unrealized P&L)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        ax1.set_ylabel("Cumulative Total P&L ($)")
         ax1.grid(True, alpha=0.3)
         ax1.axhline(y=0, color="red", linestyle="--", alpha=0.7)
 
-        # Daily P&L
+        # Daily P&L (still showing total daily P&L for distribution analysis)
+        daily_pnl_to_plot = self.daily_total_pnl
         ax2.bar(
-            range(len(self.daily_pnl)),
-            self.daily_pnl,
-            color=[palette[1] if pnl >= 0 else palette[2] for pnl in self.daily_pnl],
+            range(len(daily_pnl_to_plot)),
+            daily_pnl_to_plot,
+            color=[
+                palette[1] if pnl >= 0 else palette[2] for pnl in daily_pnl_to_plot
+            ],
         )
-        ax2.set_title("Daily P&L Distribution", fontsize=14, fontweight="bold")
+        ax2.set_title(
+            "Daily Total P&L Distribution (Realized + Unrealized)",
+            fontsize=14,
+            fontweight="bold",
+        )
         ax2.set_xlabel("Trading Day")
-        ax2.set_ylabel("Daily P&L ($)")
+        ax2.set_ylabel("Daily Total P&L ($)")
         ax2.grid(True, alpha=0.3)
         ax2.axhline(y=0, color="black", linestyle="-", alpha=0.5)
 
@@ -683,7 +701,9 @@ class LSTMTradingStrategy:
                 # Trade P&L distribution
                 pnls = [trade.pnl for trade in closed_trades if trade.pnl is not None]
                 ax1.hist(pnls, bins=20, color=palette[0], alpha=0.7, edgecolor="black")
-                ax1.set_title("Trade P&L Distribution", fontweight="bold")
+                ax1.set_title(
+                    "Trade P&L Distribution (Realized Trades Only)", fontweight="bold"
+                )
                 ax1.set_xlabel("P&L ($)")
                 ax1.set_ylabel("Frequency")
                 ax1.axvline(x=0, color="red", linestyle="--")
@@ -717,7 +737,9 @@ class LSTMTradingStrategy:
                     pnls = list(monthly_pnl.values())
                     colors = [palette[1] if pnl >= 0 else palette[2] for pnl in pnls]
                     ax3.bar(range(len(pnls)), pnls, color=colors)
-                    ax3.set_title("Monthly P&L", fontweight="bold")
+                    ax3.set_title(
+                        "Monthly P&L (Realized Trades Only)", fontweight="bold"
+                    )
                     ax3.set_xlabel("Month")
                     ax3.set_ylabel("Monthly P&L ($)")
                     ax3.set_xticks(range(len(months)))
@@ -750,7 +772,9 @@ class LSTMTradingStrategy:
                         palette[1] if pnl >= 0 else palette[2] for pnl in avg_pnls
                     ]
                     ax4.bar(trade_types, avg_pnls, color=colors)
-                    ax4.set_title("Average P&L by Trade Type", fontweight="bold")
+                    ax4.set_title(
+                        "Average P&L by Trade Type (Realized)", fontweight="bold"
+                    )
                     ax4.set_ylabel("Average P&L ($)")
                     ax4.axhline(y=0, color="black", linestyle="-", alpha=0.5)
 

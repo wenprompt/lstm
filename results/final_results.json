@@ -80,7 +80,7 @@
   },
   "training": {
     "final_epoch": 39,
-    "total_time_minutes": 0.06693071921666463,
+    "total_time_minutes": 0.06781999270121257,
     "best_val_loss": 4.241380536556244,
     "final_train_loss": 4.33909125328064,
     "final_val_loss": 4.33909125328064,

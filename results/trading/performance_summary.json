@@ -2,7 +2,7 @@
   "strategy_name": "LSTM Iron Ore Momentum Strategy",
   "buffer_threshold": 0.3,
   "position_size": 1.0,
-  "backtest_timestamp": "2025-09-02T07:52:20.503523",
+  "backtest_timestamp": "2025-09-02T08:17:49.199693",
   "performance_metrics": {
     "backtest_summary": {
       "total_trades": 43,
