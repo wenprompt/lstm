@@ -254,7 +254,7 @@ def create_dashboard2_performance_rankings(results_df):
         y_pos = np.arange(len(top10))
 
         # Create gradient colors from green to red
-        colors = plt.get_cmap('RdYlGn_r')(np.linspace(0.3, 0.9, len(top10)))
+        colors = plt.get_cmap("RdYlGn_r")(np.linspace(0.3, 0.9, len(top10)))
         bars = ax1.barh(
             y_pos,
             top10["composite_score"],
@@ -738,6 +738,7 @@ Next Steps After Success:
     except Exception:
         logger.exception("  ❌ Could not generate Dashboard 4")
 
+
 def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
     """
     Dashboard 5: Time Series Comparison of Top 5 Models (5 charts in 1 image).
@@ -746,11 +747,18 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
         results_df: DataFrame with tuning results.
     """
     try:
-        logger.info("Creating Dashboard 5: Time Series Comparison (5 charts in 1 image)...")
+        logger.info(
+            "Creating Dashboard 5: Time Series Comparison (5 charts in 1 image)..."
+        )
 
         # Ensure predictions and actual Y values are available in the DataFrame
-        if "predictions" not in results_df.columns or "test_y_actual" not in results_df.columns:
-            logger.error("'predictions' or 'test_y_actual' columns not found in tuning_results.csv. Please re-run tune_hyperparameters.py.")
+        if (
+            "predictions" not in results_df.columns
+            or "test_y_actual" not in results_df.columns
+        ):
+            logger.error(
+                "'predictions' or 'test_y_actual' columns not found in tuning_results.csv. Please re-run tune_hyperparameters.py."
+            )
             return
 
         # Get the actual Y values from the first row (they should be identical across all trials)
@@ -762,39 +770,54 @@ def create_dashboard5_timeseries_comparison(results_df: pd.DataFrame) -> None:
 
         # Create a single figure with 5 subplots (e.g., 3 rows, 2 columns)
         fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(20, 18))
-        axes = axes.flatten() # Flatten the 2D array of axes for easy iteration
+        axes = axes.flatten()  # Flatten the 2D array of axes for easy iteration
 
-        fig.suptitle("Dashboard 5: Time Series Comparison - Top 5 Models vs. Actual Y", fontsize=24, fontweight='bold', y=1.02)
+        fig.suptitle(
+            "Dashboard 5: Time Series Comparison - Top 5 Models vs. Actual Y",
+            fontsize=24,
+            fontweight="bold",
+            y=1.02,
+        )
 
         for i, (index, row) in enumerate(top5_models.iterrows()):
-            ax = axes[i] # Get the current subplot axis
+            ax = axes[i]  # Get the current subplot axis
             model_rank = i + 1
-            
+
             # Convert string representation of list to actual list
             predictions = np.array(json.loads(row["predictions"]))
-            
+
             if len(predictions) == 0:
-                logger.warning(f"No predictions found for trial {row.name}. Skipping model #{model_rank}.")
+                logger.warning(
+                    f"No predictions found for trial {row.name}. Skipping model #{model_rank}."
+                )
                 continue
 
             model_label = f"Model #{model_rank} (LR={row['learning_rate']:.4f}, H={int(row['hidden_size'])}, Acc={row['val_directional_accuracy']:.1f}%, RMSE={row['val_rmse']:.4f})"
 
-            ax.plot(y_test, label="Actual Returns", color='black', linewidth=2, alpha=0.8)
-            ax.plot(predictions, label="Predicted Returns", linestyle='--', color='red', alpha=0.7)
+            ax.plot(
+                y_test, label="Actual Returns", color="black", linewidth=2, alpha=0.8
+            )
+            ax.plot(
+                predictions,
+                label="Predicted Returns",
+                linestyle="--",
+                color="red",
+                alpha=0.7,
+            )
 
-            ax.set_title(model_label, fontsize=14, fontweight='bold')
+            ax.set_title(model_label, fontsize=14, fontweight="bold")
             ax.set_xlabel("Test Set Time Step", fontsize=10)
             ax.set_ylabel("Log Return (%)", fontsize=10)
             ax.legend(fontsize=9)
-            ax.grid(True, which='both', linestyle='--', linewidth=0.5)
-            ax.axhline(0, color='grey', linestyle='-', linewidth=1)
+            ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+            ax.axhline(0, color="grey", linestyle="-", linewidth=1)
 
         # Hide any unused subplots (if ncols * nrows > number of models)
         for j in range(len(top5_models), len(axes)):
             fig.delaxes(axes[j])
 
         plt.tight_layout()
-        plt.subplots_adjust(top=0.95) # Adjust top to make space for suptitle
+        plt.subplots_adjust(top=0.95)  # Adjust top to make space for suptitle
 
         output_path = PLOTS_DIR / "dashboard5_timeseries_comparison.png"
         plt.savefig(output_path, dpi=300, bbox_inches="tight")

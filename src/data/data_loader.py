@@ -69,19 +69,25 @@ class DataLoader:
         if missing_y > 0:
             logger.warning(f"Found {missing_y} missing Y values")
 
-        logger.info(f"Data loaded successfully: {self.data.shape} (observations × features)")
-        logger.info(f"Date range: {self.data.index.min().date()} to {self.data.index.max().date()}")
-        logger.info(f"Time span: {(self.data.index.max() - self.data.index.min()).days} days")
-        
+        logger.info(
+            f"Data loaded successfully: {self.data.shape} (observations × features)"
+        )
+        logger.info(
+            f"Date range: {self.data.index.min().date()} to {self.data.index.max().date()}"
+        )
+        logger.info(
+            f"Time span: {(self.data.index.max() - self.data.index.min()).days} days"
+        )
+
         # Log data quality statistics
         total_values = self.data.size
         missing_values = self.data.isnull().sum().sum()
         missing_percentage = (missing_values / total_values) * 100
-        
+
         logger.info("Data quality overview:")
         logger.info(f"  Total values: {total_values:,}")
         logger.info(f"  Missing values: {missing_values:,} ({missing_percentage:.2f}%)")
-        
+
         # Feature-wise missing value analysis
         missing_by_feature = self.data.isnull().sum()
         if missing_values > 0:
@@ -92,7 +98,7 @@ class DataLoader:
                     logger.info(f"    {feature}: {count} ({pct:.1f}%)")
         else:
             logger.info("  ✓ No missing values detected")
-            
+
         # Basic statistical overview of Y target
         y_series = self.data["Y"]
         logger.info("Target variable (Y) statistics:")
@@ -137,7 +143,7 @@ class DataLoader:
         actual_train_pct = len(train_df) / n_samples * 100
         actual_val_pct = len(val_df) / n_samples * 100
         actual_test_pct = len(test_df) / n_samples * 100
-        
+
         logger.info("Chronological data splits created:")
         logger.info(
             f"  Train: {len(train_df):3d} samples ({actual_train_pct:5.1f}%) "
@@ -156,13 +162,19 @@ class DataLoader:
             f"  Test:  {len(test_df):3d} samples ({actual_test_pct:5.1f}%) "
             f"[{test_df.index.min().date()} to {test_df.index.max().date()}]"
         )
-        
+
         # Log target variable statistics for each split
         logger.info("Target variable (Y) statistics by split:")
-        logger.info(f"  Train Y: mean={train_df['Y'].mean():.6f}, std={train_df['Y'].std():.6f}")
+        logger.info(
+            f"  Train Y: mean={train_df['Y'].mean():.6f}, std={train_df['Y'].std():.6f}"
+        )
         if len(val_df) > 0:
-            logger.info(f"  Val Y:   mean={val_df['Y'].mean():.6f}, std={val_df['Y'].std():.6f}")
-        logger.info(f"  Test Y:  mean={test_df['Y'].mean():.6f}, std={test_df['Y'].std():.6f}")
+            logger.info(
+                f"  Val Y:   mean={val_df['Y'].mean():.6f}, std={val_df['Y'].std():.6f}"
+            )
+        logger.info(
+            f"  Test Y:  mean={test_df['Y'].mean():.6f}, std={test_df['Y'].std():.6f}"
+        )
 
         # Data split summary
         total_samples = len(train_df) + len(val_df) + len(test_df)
@@ -251,7 +263,9 @@ class DataLoader:
             for idx, row in preview_data.iterrows():
                 feature_values = [f"{row[col]:.4f}" for col in feature_cols]
                 target_value = row["Y"]
-                logger.info(f"  Row {idx}: [{', '.join(feature_values)}] → Y={target_value:.6f}")
+                logger.info(
+                    f"  Row {idx}: [{', '.join(feature_values)}] → Y={target_value:.6f}"
+                )
         except Exception as e:
             logger.warning(f"Could not preview feature data: {e}")
 
@@ -302,24 +316,27 @@ class DataLoader:
         original_max = train_df[feature_cols].max().max()
         scaled_min = train_df_scaled[feature_cols].min().min()
         scaled_max = train_df_scaled[feature_cols].max().max()
-        
+
         logger.info("Feature scaling transformation completed:")
         logger.info(f"  Original range: [{original_min:.6f}, {original_max:.6f}]")
         logger.info(f"  Scaled range:   [{scaled_min:.3f}, {scaled_max:.3f}]")
-        
+
         # Log scaling parameters for reproducibility
         logger.info("Scaling parameters (MinMaxScaler):")
         scaler_min = self.scaler.data_min_
         scaler_scale = self.scaler.scale_
         logger.info(f"  Data min: [{scaler_min.min():.6f}, {scaler_min.max():.6f}]")
-        logger.info(f"  Scale factors: [{scaler_scale.min():.6f}, {scaler_scale.max():.6f}]")
-        
-        # Verify Y target is unscaled
-        y_unchanged = (
-            train_df_scaled['Y'].equals(train_df['Y']) and 
-            test_df_scaled['Y'].equals(test_df['Y'])
+        logger.info(
+            f"  Scale factors: [{scaler_scale.min():.6f}, {scaler_scale.max():.6f}]"
         )
-        logger.info(f"  Target (Y) scaling: {'unchanged (correct)' if y_unchanged else 'MODIFIED (ERROR)'}")
+
+        # Verify Y target is unscaled
+        y_unchanged = train_df_scaled["Y"].equals(train_df["Y"]) and test_df_scaled[
+            "Y"
+        ].equals(test_df["Y"])
+        logger.info(
+            f"  Target (Y) scaling: {'unchanged (correct)' if y_unchanged else 'MODIFIED (ERROR)'}"
+        )
 
         # Feature scaling summary
         logger.info(
@@ -351,15 +368,21 @@ class DataLoader:
             train_df, val_df, test_df = self.scale_features(train_df, val_df, test_df)
 
         # Final pipeline summary
-        final_feature_count = len([col for col in train_df.columns if col != 'Y'])
-        logger.info("\n" + "="*60)
+        final_feature_count = len([col for col in train_df.columns if col != "Y"])
+        logger.info("\n" + "=" * 60)
         logger.info("DATA PREPROCESSING PIPELINE COMPLETED SUCCESSFULLY")
-        logger.info("="*60)
+        logger.info("=" * 60)
         logger.info("Final dataset specifications:")
-        logger.info(f"  Features: {final_feature_count} (selected from available features)")
-        logger.info(f"  Samples: train={len(train_df)}, val={len(val_df)}, test={len(test_df)}")
-        logger.info(f"  Scaling: {'enabled' if self.config['scaling']['scale_features'] else 'disabled'}")
+        logger.info(
+            f"  Features: {final_feature_count} (selected from available features)"
+        )
+        logger.info(
+            f"  Samples: train={len(train_df)}, val={len(val_df)}, test={len(test_df)}"
+        )
+        logger.info(
+            f"  Scaling: {'enabled' if self.config['scaling']['scale_features'] else 'disabled'}"
+        )
         logger.info("  Data quality: ready for LSTM training")
-        logger.info("="*60 + "\n")
-        
+        logger.info("=" * 60 + "\n")
+
         return train_df, val_df, test_df

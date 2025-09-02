@@ -32,8 +32,9 @@ from src.data.dataset import create_dataloaders, get_data_info
 from src.models.model import create_model, get_model_summary
 from src.training.train import create_trainer
 from src.evaluation.evaluate import evaluate_model
-from src.evaluation.test_results_exporter import export_test_results
+from src.evaluation.model_results_export import export_model_results
 from src.trading.lstm_strategy import run_lstm_trading_strategy
+from src.utils.seed import set_seed, validate_reproducibility
 
 # Ensure results and logs directories exist for logging
 Path("results/logs/training").mkdir(parents=True, exist_ok=True)
@@ -105,6 +106,22 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
         # Feature selection logging
         feature_count = len(config.get("features", []))
         logger.info(f"    Selected features: {feature_count}")
+
+        # Reproducibility configuration logging
+        repro_config = config.get("reproducibility", {})
+        if repro_config:
+            logger.info("  Reproducibility Configuration:")
+            logger.info(f"    Seed: {repro_config.get('seed', 'Not set')}")
+            logger.info(
+                f"    Deterministic algorithms: {repro_config.get('deterministic', False)}"
+            )
+            logger.info(
+                f"    CUDA deterministic: {repro_config.get('cuda_deterministic', False)}"
+            )
+        else:
+            logger.warning(
+                "  No reproducibility configuration found - results may vary between runs"
+            )
 
         return config
 
@@ -316,26 +333,40 @@ def evaluate_trained_model(
 
     # Export detailed test results DataFrame
     logger.info("Exporting detailed test results DataFrame...")
-    test_export_results = export_test_results(
+    test_export_results = export_model_results(
         model=model,
         test_loader=test_loader,
         device=device,
         config=config,
-        save_dir=Path("results")
+        save_dir=Path("results"),
     )
-    
-    # Run trading strategy using exported test results
+
+    # Run trading strategy using exported test results with error handling
     logger.info("Executing LSTM trading strategy...")
-    test_results_path = Path(test_export_results['export_files']['csv'])
-    trading_results = run_lstm_trading_strategy(
-        test_results_path=test_results_path,
-        save_dir=Path("results")
-    )
-    
-    logger.info("Evaluation and trading strategy completed successfully")
+
+    csv_key = test_export_results.get("export_files", {}).get("csv")
+    if not csv_key:
+        logger.warning(
+            "No CSV path found in test_export_results; skipping trading step"
+        )
+        trading_results = {}
+    else:
+        try:
+            trading_results = run_lstm_trading_strategy(
+                test_results_path=Path(csv_key),
+                save_dir=Path("results"),
+            )
+            logger.info("Trading strategy completed successfully")
+            logger.info(
+                f"Trading results saved to: {trading_results.get('export_files', {}).get('performance_summary', 'N/A')}"
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Trading strategy failed: {e}")
+            trading_results = {}
+
+    logger.info("Evaluation phase completed")
     logger.info("Plots saved to: results/plots/")
     logger.info(f"Test results saved to: {test_export_results['export_files']['csv']}")
-    logger.info(f"Trading results saved to: {trading_results['export_files']['performance_summary']}")
 
     # Add trading results to evaluation results for final output
     evaluation_results["trading_strategy"] = trading_results
@@ -379,6 +410,7 @@ def save_final_results(
             "model_type": evaluation_results["model_type"],
             "plot_files": evaluation_results["plot_paths"],
         },
+        "trading_strategy": evaluation_results.get("trading_strategy", {}),
     }
 
     # Save to JSON
@@ -394,17 +426,19 @@ def save_final_results(
     logger.info("=" * 60)
     logger.info("PIPELINE EXECUTION COMPLETED SUCCESSFULLY")
     logger.info("=" * 60)
-    
+
     # Check if validation was enabled by comparing val_ratio
     val_ratio = config.get("splits", {}).get("val_ratio", 0.0)
     has_validation = val_ratio > 0.0
-    
+
     # Log validation results appropriately
     if has_validation:
         logger.info(f"Best validation loss: {training_results['best_val_loss']:.6f}")
     else:
-        logger.info(f"Best train loss: {training_results['best_val_loss']:.6f} (no validation)")
-    
+        logger.info(
+            f"Best train loss: {training_results['best_val_loss']:.6f} (no validation)"
+        )
+
     logger.info(f"Test RMSE: {evaluation_results['metrics']['rmse']:.6f}")
     logger.info(f"Test MAE: {evaluation_results['metrics']['mae']:.6f}")
     logger.info(
@@ -436,6 +470,52 @@ def save_final_results(
         f"🎯 FINAL RESULT: {overall_quality} iron ore price forecasting model - predicts price direction correctly {direction_success:.1f}% of the time"
     )
     logger.info("=" * 60)
+
+
+def setup_reproducibility(config: Dict[str, Any]) -> None:
+    """
+    Setup reproducibility configuration including seed setting.
+
+    Args:
+        config: Configuration dictionary with reproducibility settings
+    """
+    logger.info("=" * 60)
+    logger.info("STEP 0: REPRODUCIBILITY SETUP")
+    logger.info("=" * 60)
+
+    # Validate and set up reproducibility
+    try:
+        validate_reproducibility(config)
+
+        repro_config = config.get("reproducibility", {})
+        if repro_config:
+            seed = repro_config.get("seed")
+            deterministic = repro_config.get("deterministic", False)
+            cuda_deterministic = repro_config.get("cuda_deterministic", False)
+
+            # Set seed for all random number generators
+            set_seed(
+                seed=seed,
+                deterministic=deterministic,
+                cuda_deterministic=cuda_deterministic,
+            )
+
+            logger.info("Reproducibility setup completed successfully")
+            logger.info(f"All random number generators seeded with: {seed}")
+
+            if deterministic or cuda_deterministic:
+                logger.info(
+                    "Deterministic mode enabled - training may be slower but fully reproducible"
+                )
+        else:
+            logger.warning("No reproducibility configuration found")
+            logger.warning(
+                "Results may vary between runs - consider adding 'reproducibility' section to config.yaml"
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to setup reproducibility: {e}")
+        logger.error("Proceeding without reproducibility guarantees")
 
 
 def log_system_information() -> None:
@@ -490,6 +570,12 @@ def main() -> None:
         config = load_config()
         config_time = time.time() - step_start
         logger.info(f"Configuration loaded in {config_time:.2f} seconds\n")
+
+        # Setup reproducibility (must be done early, before any model operations)
+        step_start = time.time()
+        setup_reproducibility(config)
+        repro_time = time.time() - step_start
+        logger.info(f"Reproducibility setup completed in {repro_time:.2f} seconds\n")
 
         # Setup directories
         step_start = time.time()
@@ -549,14 +635,14 @@ def main() -> None:
         logger.info("ENHANCED PIPELINE EXECUTION SUMMARY")
         logger.info("=" * 80)
         logger.info(
-            f"Total execution time: {total_time:.1f} seconds ({total_time/60:.1f} minutes)"
+            f"Total execution time: {total_time:.1f} seconds ({total_time / 60:.1f} minutes)"
         )
 
         # Performance breakdown
         training_time = training_results.get("total_time", 0)
         training_pct = (training_time / total_time) * 100 if total_time > 0 else 0
         logger.info(
-            f"Training time: {training_time/60:.1f} min ({training_pct:.1f}% of total)"
+            f"Training time: {training_time / 60:.1f} min ({training_pct:.1f}% of total)"
         )
 
         # Resource utilization summary

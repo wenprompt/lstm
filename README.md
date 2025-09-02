@@ -90,5 +90,3 @@ Each metric is normalized to a 0-1 scale before being weighted, and the final sc
 During hyperparameter tuning, the model with the **highest composite score** is considered the best and most balanced performer. The tuning script automatically uses this score to rank the models and recommend the best set of hyperparameters.
 
 **TO DOUBLE CHECK**
-
-- NOTHING, YAY!

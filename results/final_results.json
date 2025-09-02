@@ -19,7 +19,7 @@
       "IOCJ Weekly shipment"
     ],
     "model": {
-      "sequence_length": 12,
+      "sequence_length": 14,
       "hidden_size": 16,
       "number_of_layers": 2,
       "dropout_rate": 0.35,
@@ -36,9 +36,9 @@
       "optimizer": "adam"
     },
     "splits": {
-      "train_ratio": 0.8,
+      "train_ratio": 0.75,
       "val_ratio": 0.0,
-      "test_ratio": 0.2
+      "test_ratio": 0.25
     },
     "scaling": {
       "scale_features": true,
@@ -51,6 +51,11 @@
     ],
     "device": {
       "use_cuda": true
+    },
+    "reproducibility": {
+      "seed": 50,
+      "deterministic": true,
+      "cuda_deterministic": true
     },
     "thresholds": {
       "plateau_tolerance": 0.001,
@@ -74,33 +79,33 @@
     }
   },
   "training": {
-    "final_epoch": 54,
-    "total_time_minutes": 0.08400317033131917,
-    "best_val_loss": 4.016350009224632,
-    "final_train_loss": 4.03313098712401,
-    "final_val_loss": 4.03313098712401,
+    "final_epoch": 45,
+    "total_time_minutes": 0.07621971368789673,
+    "best_val_loss": 4.234348213672638,
+    "final_train_loss": 4.251661121845245,
+    "final_val_loss": 4.251661121845245,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.1164484313726948,
-      "mae": 0.8976008892059326,
-      "mse": 1.2464570999145508,
-      "directional_accuracy": 50.617283950617285,
-      "r_squared": -0.07215666770935059,
-      "mape": 319177.71875,
-      "smape": 154.07611083984375
+      "rmse": 1.115912129613973,
+      "mae": 0.9021701216697693,
+      "mse": 1.2452598810195923,
+      "directional_accuracy": 49.26108374384236,
+      "r_squared": -0.03714346885681152,
+      "mape": 191984.25,
+      "smape": 159.0220184326172
     },
-    "test_samples": 162,
+    "test_samples": 203,
     "prediction_statistics": {
-      "mean_prediction": 0.2932939827442169,
-      "std_prediction": 0.20149771869182587,
-      "min_prediction": 0.010318389162421227,
-      "max_prediction": 0.6070682406425476
+      "mean_prediction": 0.10882989317178726,
+      "std_prediction": 0.25537607073783875,
+      "min_prediction": -0.31250983476638794,
+      "max_prediction": 0.5484209060668945
     },
     "actual_statistics": {
-      "mean_actual": 0.06015646830201149,
-      "std_actual": 1.0782253742218018,
+      "mean_actual": 0.03978908807039261,
+      "std_actual": 1.095747709274292,
       "min_actual": -2.7594096660614014,
       "max_actual": 3.016491174697876
     },
@@ -110,6 +115,56 @@
       "timeseries": "results/plots/timeseries_comparison.png",
       "residuals": "results/plots/residuals_analysis.png",
       "distributions": "results/plots/distribution_comparison.png"
+    }
+  },
+  "trading_strategy": {
+    "performance": {
+      "backtest_summary": {
+        "total_trades": 111,
+        "long_trades": 83,
+        "short_trades": 28,
+        "test_period_days": 203,
+        "trades_per_month": 16.644532019704435
+      },
+      "pnl_metrics": {
+        "total_pnl": 7.5,
+        "average_trade_pnl": 0.07,
+        "best_trade": 11.07,
+        "worst_trade": -7.5,
+        "final_equity": 7.5
+      },
+      "win_loss_metrics": {
+        "win_rate_pct": 44.14,
+        "profit_factor": 1.06,
+        "average_win": 2.82,
+        "average_loss": -2.11,
+        "winning_trades": 49,
+        "losing_trades": 62
+      },
+      "risk_metrics": {
+        "sharpe_ratio": 0.212,
+        "max_drawdown": -93.9,
+        "max_drawdown_pct": -474.24,
+        "volatility_daily": 1.8404
+      },
+      "time_metrics": {
+        "average_holding_days": 16.0,
+        "longest_trade_days": 29,
+        "shortest_trade_days": 1
+      }
+    },
+    "export_files": {
+      "trade_log": "results/trading/trade_log.csv",
+      "equity_log": "results/trading/equity_log.csv",
+      "performance_summary": "results/trading/performance_summary.json"
+    },
+    "plot_files": {
+      "equity_curve": "results/plots/trading_equity_curve.png",
+      "trade_analysis": "results/plots/trading_analysis.png"
+    },
+    "strategy_config": {
+      "buffer_threshold": 0.2,
+      "position_size": 1.0
     }
   }
 }
