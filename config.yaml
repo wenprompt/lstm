@@ -109,6 +109,17 @@ device:
   # Use GPU if available, otherwise CPU
   use_cuda: true
 
+# Reproducibility configuration
+reproducibility:
+  # Random seed for reproducible results across all components
+  seed: 42
+  
+  # Enable deterministic algorithms (may impact performance)
+  deterministic: true
+  
+  # Enable reproducible CUDA operations (may impact performance)
+  cuda_deterministic: true
+
 # Training assessment thresholds
 thresholds:
   # Performance assessment (validation loss improvement)

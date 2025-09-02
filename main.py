@@ -34,6 +34,7 @@ from src.training.train import create_trainer
 from src.evaluation.evaluate import evaluate_model
 from src.evaluation.model_results_export import export_model_results
 from src.trading.lstm_strategy import run_lstm_trading_strategy
+from src.utils.seed import set_seed, validate_reproducibility
 
 # Ensure results and logs directories exist for logging
 Path("results/logs/training").mkdir(parents=True, exist_ok=True)
@@ -105,6 +106,22 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
         # Feature selection logging
         feature_count = len(config.get("features", []))
         logger.info(f"    Selected features: {feature_count}")
+
+        # Reproducibility configuration logging
+        repro_config = config.get("reproducibility", {})
+        if repro_config:
+            logger.info("  Reproducibility Configuration:")
+            logger.info(f"    Seed: {repro_config.get('seed', 'Not set')}")
+            logger.info(
+                f"    Deterministic algorithms: {repro_config.get('deterministic', False)}"
+            )
+            logger.info(
+                f"    CUDA deterministic: {repro_config.get('cuda_deterministic', False)}"
+            )
+        else:
+            logger.warning(
+                "  No reproducibility configuration found - results may vary between runs"
+            )
 
         return config
 
@@ -455,6 +472,52 @@ def save_final_results(
     logger.info("=" * 60)
 
 
+def setup_reproducibility(config: Dict[str, Any]) -> None:
+    """
+    Setup reproducibility configuration including seed setting.
+
+    Args:
+        config: Configuration dictionary with reproducibility settings
+    """
+    logger.info("=" * 60)
+    logger.info("STEP 0: REPRODUCIBILITY SETUP")
+    logger.info("=" * 60)
+
+    # Validate and set up reproducibility
+    try:
+        validate_reproducibility(config)
+
+        repro_config = config.get("reproducibility", {})
+        if repro_config:
+            seed = repro_config.get("seed")
+            deterministic = repro_config.get("deterministic", False)
+            cuda_deterministic = repro_config.get("cuda_deterministic", False)
+
+            # Set seed for all random number generators
+            set_seed(
+                seed=seed,
+                deterministic=deterministic,
+                cuda_deterministic=cuda_deterministic,
+            )
+
+            logger.info("Reproducibility setup completed successfully")
+            logger.info(f"All random number generators seeded with: {seed}")
+
+            if deterministic or cuda_deterministic:
+                logger.info(
+                    "Deterministic mode enabled - training may be slower but fully reproducible"
+                )
+        else:
+            logger.warning("No reproducibility configuration found")
+            logger.warning(
+                "Results may vary between runs - consider adding 'reproducibility' section to config.yaml"
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to setup reproducibility: {e}")
+        logger.error("Proceeding without reproducibility guarantees")
+
+
 def log_system_information() -> None:
     """
     Log comprehensive system information for reproducibility.
@@ -507,6 +570,12 @@ def main() -> None:
         config = load_config()
         config_time = time.time() - step_start
         logger.info(f"Configuration loaded in {config_time:.2f} seconds\n")
+
+        # Setup reproducibility (must be done early, before any model operations)
+        step_start = time.time()
+        setup_reproducibility(config)
+        repro_time = time.time() - step_start
+        logger.info(f"Reproducibility setup completed in {repro_time:.2f} seconds\n")
 
         # Setup directories
         step_start = time.time()

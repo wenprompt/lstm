@@ -52,6 +52,11 @@
     "device": {
       "use_cuda": true
     },
+    "reproducibility": {
+      "seed": 42,
+      "deterministic": true,
+      "cuda_deterministic": true
+    },
     "thresholds": {
       "plateau_tolerance": 0.001,
       "fast_epoch_time": 10,
@@ -74,29 +79,29 @@
     }
   },
   "training": {
-    "final_epoch": 33,
-    "total_time_minutes": 0.045087186495463054,
-    "best_val_loss": 4.258392572402954,
-    "final_train_loss": 4.341418766975403,
-    "final_val_loss": 4.341418766975403,
+    "final_epoch": 39,
+    "total_time_minutes": 0.06693071921666463,
+    "best_val_loss": 4.241380536556244,
+    "final_train_loss": 4.33909125328064,
+    "final_val_loss": 4.33909125328064,
     "early_stopped": true
   },
   "evaluation": {
     "test_metrics": {
-      "rmse": 1.1037474262211862,
-      "mae": 0.8906765580177307,
-      "mse": 1.2182583808898926,
-      "directional_accuracy": 55.66502463054187,
-      "r_squared": -0.01465463638305664,
-      "mape": 187615.8125,
-      "smape": 163.4151153564453
+      "rmse": 1.100178545853373,
+      "mae": 0.8862113952636719,
+      "mse": 1.2103928327560425,
+      "directional_accuracy": 54.187192118226605,
+      "r_squared": -0.008103609085083008,
+      "mape": 129303.4921875,
+      "smape": 167.30950927734375
     },
     "test_samples": 203,
     "prediction_statistics": {
-      "mean_prediction": 0.1628798097372055,
-      "std_prediction": 0.17273706197738647,
-      "min_prediction": -0.13607259094715118,
-      "max_prediction": 0.44032320380210876
+      "mean_prediction": 0.1201632171869278,
+      "std_prediction": 0.1455530971288681,
+      "min_prediction": -0.13169866800308228,
+      "max_prediction": 0.3457236886024475
     },
     "actual_statistics": {
       "mean_actual": 0.03978908807039261,
@@ -115,41 +120,42 @@
   "trading_strategy": {
     "performance": {
       "backtest_summary": {
-        "total_trades": 118,
-        "long_trades": 112,
-        "short_trades": 6,
+        "total_trades": 43,
+        "long_trades": 43,
+        "short_trades": 0,
         "test_period_days": 203,
-        "trades_per_month": 17.69418719211823
+        "trades_per_month": 6.447881773399015
       },
       "pnl_metrics": {
-        "total_pnl": 19.84,
-        "average_trade_pnl": 0.17,
-        "best_trade": 10.57,
-        "worst_trade": -6.05,
-        "final_equity": -2.81
+        "total_pnl": -65.87,
+        "average_trade_pnl": -1.53,
+        "best_trade": 0.71,
+        "worst_trade": -6.03,
+        "final_equity": -65.87
       },
       "win_loss_metrics": {
-        "win_rate_pct": 49.15,
-        "profit_factor": 1.16,
-        "average_win": 2.44,
-        "average_loss": -2.03,
-        "winning_trades": 58,
-        "losing_trades": 60
+        "win_rate_pct": 18.6,
+        "profit_factor": 0.04,
+        "average_win": 0.35,
+        "average_loss": -1.96,
+        "winning_trades": 8,
+        "losing_trades": 35
       },
       "risk_metrics": {
-        "sharpe_ratio": -0.212,
-        "max_drawdown": -84.43,
-        "max_drawdown_pct": -316.34,
-        "volatility_daily": 91.1252
+        "sharpe_ratio": -0.067,
+        "max_drawdown": -66.34,
+        "max_drawdown_pct": 0,
+        "volatility_daily": 317.5229
       },
       "time_metrics": {
-        "average_holding_days": 13.9,
-        "longest_trade_days": 30,
+        "average_holding_days": 14.9,
+        "longest_trade_days": 29,
         "shortest_trade_days": 1
       }
     },
     "export_files": {
       "trade_log": "results/trading/trade_log.csv",
+      "equity_log": "results/trading/equity_log.csv",
       "performance_summary": "results/trading/performance_summary.json"
     },
     "plot_files": {
@@ -157,7 +163,7 @@
       "trade_analysis": "results/plots/trading_analysis.png"
     },
     "strategy_config": {
-      "buffer_threshold": 0.1,
+      "buffer_threshold": 0.3,
       "position_size": 1.0
     }
   }

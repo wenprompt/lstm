@@ -90,6 +90,3 @@ Each metric is normalized to a 0-1 scale before being weighted, and the final sc
 During hyperparameter tuning, the model with the **highest composite score** is considered the best and most balanced performer. The tuning script automatically uses this score to rank the models and recommend the best set of hyperparameters.
 
 **TO DOUBLE CHECK**
-
-- realised, unrealised and cumulative PNL is completely wrong in trade_log. Assume that Sharpe ratio is calculated wrongly too, only final PNL is accurate
-- LONG SHORT diagram on trading_analysis is flipped. Believe that trading_equity_curve is wrong too.

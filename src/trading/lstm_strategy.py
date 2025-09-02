@@ -28,7 +28,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # Trading constants
-BUFFER_THRESHOLD = 0.20  #  absolute price difference threshold
+BUFFER_THRESHOLD = 0.30  #  absolute price difference threshold
 POSITION_SIZE = 1.0  # Standard position size per signal
 
 
@@ -193,6 +193,56 @@ class LSTMTradingStrategy:
 
         return unrealized_pnl
 
+    def calculate_next_day_unrealized_pnl(self, next_day_price: float) -> float:
+        """
+        Calculate unrealized P&L against next day's DSP (Daily Settlement Price).
+        This is the correct method for proper daily P&L tracking.
+
+        Args:
+            next_day_price: Next day's DSP (Daily Settlement Price)
+
+        Returns:
+            Total unrealized P&L against next day's price
+        """
+        unrealized_pnl = 0.0
+
+        for trade in self.open_positions:
+            if trade.trade_type == "LONG":
+                # LONG: profit when next day price rises above entry
+                unrealized_pnl += (
+                    next_day_price - trade.entry_price
+                ) * trade.position_size
+            else:  # SHORT
+                # SHORT: profit when next day price falls below entry
+                unrealized_pnl += (
+                    trade.entry_price - next_day_price
+                ) * trade.position_size
+
+        return unrealized_pnl
+
+    def get_position_list_string(self) -> str:
+        """
+        Get current open positions as a string representation.
+        Format: [{entry_price: position_size}, {entry_price: position_size}]
+
+        Returns:
+            String representation of open positions
+        """
+        if not self.open_positions:
+            return "[]"
+
+        position_list = []
+        for trade in self.open_positions:
+            # Use negative size for SHORT positions
+            size = (
+                trade.position_size
+                if trade.trade_type == "LONG"
+                else -trade.position_size
+            )
+            position_list.append({trade.entry_price: size})
+
+        return str(position_list)
+
     def get_current_position_summary(self) -> Dict[str, float]:
         """
         Get current position summary inspired by sample strategy position tracking.
@@ -331,6 +381,9 @@ class LSTMTradingStrategy:
         self.daily_net_position.clear()
         self.daily_gross_position.clear()
 
+        # Store test data for equity log generation
+        self.test_data = test_data.copy()
+
         cumulative_realized_pnl = 0.0
 
         for row_idx in range(len(test_data)):
@@ -454,19 +507,29 @@ class LSTMTradingStrategy:
             else float("inf")
         )
 
-        # Risk metrics - Corrected Sharpe ratio calculation using percentage returns
-        # Calculate daily percentage returns from equity curve
-        if len(self.equity_curve) > 1:
+        # Risk metrics - Corrected Sharpe ratio calculation using daily total P&L
+        # Generate equity log to get correct daily P&L data
+        equity_log_df = self.create_equity_log()
+
+        if len(equity_log_df) > 1:
+            # Use daily total P&L (realized + unrealized) for Sharpe calculation
+            daily_total_pnl = equity_log_df["daily_total_pnl"].values
+
+            # Calculate percentage returns based on cumulative equity
             daily_returns_pct = []
-            for i in range(1, len(self.equity_curve)):
+            cumulative_equity = 0.0  # Starting equity
+
+            for pnl in daily_total_pnl:
                 prev_equity = (
-                    self.equity_curve[i - 1] if self.equity_curve[i - 1] != 0 else 1
+                    cumulative_equity if cumulative_equity != 0 else 1
                 )  # avoid division by zero
-                current_equity = self.equity_curve[i]
-                daily_return_pct = (
-                    (current_equity - prev_equity) / abs(prev_equity) * 100
-                )
+                new_equity = cumulative_equity + pnl
+
+                # Calculate percentage return
+                daily_return_pct = (pnl / abs(prev_equity)) * 100
                 daily_returns_pct.append(daily_return_pct)
+
+                cumulative_equity = new_equity
 
             sharpe_ratio = (
                 np.mean(daily_returns_pct) / np.std(daily_returns_pct)
@@ -702,63 +765,155 @@ class LSTMTradingStrategy:
 
     def create_consolidated_trade_log(self) -> pd.DataFrame:
         """
-        Create consolidated trade log with all position and P&L context data.
+        Create consolidated trade log with essential trade information only.
+        P&L tracking is now handled in equity_log.csv.
 
         Returns:
-            DataFrame with comprehensive trade information
+            DataFrame with essential trade information
         """
         consolidated_data = []
 
         for trade in self.trades:
+            # Only include essential trade information
+            # P&L context columns removed as they're now tracked in equity_log.csv
             trade_dict = trade.to_dict()
-
-            # Get position context (using trade index as approximation)
-            # In a more sophisticated implementation, you'd map actual dates to day indices
-            trade_idx = self.trades.index(trade)
-            day_idx = min(trade_idx, len(self.daily_net_position) - 1)
-
-            # Add position context
-            trade_dict.update(
-                {
-                    "day_index": day_idx,
-                    "net_position_at_trade": (
-                        self.daily_net_position[day_idx]
-                        if day_idx < len(self.daily_net_position)
-                        else 0
-                    ),
-                    "gross_position_at_trade": (
-                        self.daily_gross_position[day_idx]
-                        if day_idx < len(self.daily_gross_position)
-                        else 0
-                    ),
-                    "realized_pnl": trade.pnl if trade.pnl is not None else 0.0,
-                    "unrealized_pnl_context": (
-                        self.daily_unrealized_pnl[day_idx]
-                        if day_idx < len(self.daily_unrealized_pnl)
-                        else 0.0
-                    ),
-                    "daily_total_pnl_context": (
-                        self.daily_total_pnl[day_idx]
-                        if day_idx < len(self.daily_total_pnl)
-                        else 0.0
-                    ),
-                    "cumulative_realized_pnl": (
-                        self.equity_curve[day_idx]
-                        if day_idx < len(self.equity_curve)
-                        else 0.0
-                    ),
-                }
-            )
-
             consolidated_data.append(trade_dict)
 
         return pd.DataFrame(consolidated_data)
+
+    def create_equity_log(self) -> pd.DataFrame:
+        """
+        Create daily equity log with correct P&L tracking.
+
+        This implements the correct P&L logic:
+        1. Realized P&L: Only when trades actually close
+        2. Unrealized P&L: Against next day's DSP (Daily Settlement Price)
+        3. Cumulative Realized P&L: Running sum of realized P&L
+        4. Position List: Open positions with entry prices and quantities
+
+        Returns:
+            DataFrame with daily equity tracking
+        """
+        if not hasattr(self, "test_data"):
+            logger.warning("No test data available for equity log generation")
+            return pd.DataFrame()
+
+        logger.info("Creating daily equity log with correct P&L tracking...")
+
+        equity_data = []
+        cumulative_realized_pnl = 0.0
+
+        # Process each day in chronological order
+        for row_idx in range(len(self.test_data)):
+            row = self.test_data.iloc[row_idx]
+            current_date = pd.Timestamp(row["date"])
+            current_price = row["raw_65_m1_price"]
+
+            # Get next day's price for unrealized P&L calculation
+            next_day_price = None
+            if row_idx < len(self.test_data) - 1:
+                next_row = self.test_data.iloc[row_idx + 1]
+                next_day_price = next_row["raw_65_m1_price"]
+
+            # Find which trades opened and closed on this date
+            trades_opened_today = [
+                trade
+                for trade in self.trades
+                if trade.entry_date.date() == current_date.date()
+            ]
+
+            trades_closed_today = [
+                trade
+                for trade in self.trades
+                if trade.exit_date and trade.exit_date.date() == current_date.date()
+            ]
+
+            # Calculate realized P&L (only from trades that closed today)
+            daily_realized_pnl = sum(
+                trade.pnl for trade in trades_closed_today if trade.pnl is not None
+            )
+
+            # Update cumulative realized P&L
+            cumulative_realized_pnl += daily_realized_pnl
+
+            # Get open positions at end of day (after all entries/exits)
+            open_positions_eod = []
+            for trade in self.trades:
+                # Position is open if it entered on or before today and exits after today (or never)
+                entered_by_today = trade.entry_date.date() <= current_date.date()
+                exits_after_today = (
+                    trade.exit_date is None
+                    or trade.exit_date.date() > current_date.date()
+                )
+
+                if entered_by_today and exits_after_today:
+                    open_positions_eod.append(trade)
+
+            # Calculate unrealized P&L against next day's DSP (if available)
+            daily_unrealized_pnl = 0.0
+            if next_day_price is not None and open_positions_eod:
+                for trade in open_positions_eod:
+                    if trade.trade_type == "LONG":
+                        # LONG: profit when next day price rises above entry
+                        daily_unrealized_pnl += (
+                            next_day_price - trade.entry_price
+                        ) * trade.position_size
+                    else:  # SHORT
+                        # SHORT: profit when next day price falls below entry
+                        daily_unrealized_pnl += (
+                            trade.entry_price - next_day_price
+                        ) * trade.position_size
+
+            # Create position list string (clean format without np.float64 wrapper)
+            position_list = []
+            for trade in open_positions_eod:
+                # Use negative size for SHORT positions to match requested format
+                size = (
+                    trade.position_size
+                    if trade.trade_type == "LONG"
+                    else -trade.position_size
+                )
+                # Convert to regular Python float to avoid np.float64 in string representation
+                entry_price = float(trade.entry_price)
+                position_list.append({entry_price: size})
+
+            position_list_str = str(position_list) if position_list else "[]"
+
+            # Calculate daily total P&L
+            daily_total_pnl = daily_realized_pnl + daily_unrealized_pnl
+
+            # Add to equity data
+            equity_data.append(
+                {
+                    "date": current_date,
+                    "current_price": current_price,
+                    "next_day_price": next_day_price,
+                    "daily_realized_pnl": daily_realized_pnl,
+                    "daily_unrealized_pnl": daily_unrealized_pnl,
+                    "daily_total_pnl": daily_total_pnl,
+                    "cumulative_realized_pnl": cumulative_realized_pnl,
+                    "open_positions": position_list_str,
+                    "num_open_positions": len(open_positions_eod),
+                    "trades_opened_today": len(trades_opened_today),
+                    "trades_closed_today": len(trades_closed_today),
+                }
+            )
+
+        equity_df = pd.DataFrame(equity_data)
+
+        logger.info(f"Generated equity log with {len(equity_df)} daily records")
+        logger.info(f"Total realized P&L: ${cumulative_realized_pnl:.2f}")
+        logger.info(
+            f"Max open positions in single day: {equity_df['num_open_positions'].max()}"
+        )
+
+        return equity_df
 
     def export_results(
         self, performance_metrics: Dict[str, Any], save_dir: Path
     ) -> Dict[str, str]:
         """
-        Export trading results to files with consolidated trade log.
+        Export trading results to files with consolidated trade log and equity log.
 
         Args:
             performance_metrics: Performance metrics dictionary
@@ -773,10 +928,15 @@ class LSTMTradingStrategy:
         trading_dir = save_dir / "trading"
         trading_dir.mkdir(parents=True, exist_ok=True)
 
-        # Export consolidated trade log with all context data
+        # Export consolidated trade log with all context data (keep for backward compatibility)
         consolidated_trade_df = self.create_consolidated_trade_log()
         trade_log_path = trading_dir / "trade_log.csv"
         consolidated_trade_df.to_csv(trade_log_path, index=False)
+
+        # Export NEW equity log with correct P&L tracking
+        equity_log_df = self.create_equity_log()
+        equity_log_path = trading_dir / "equity_log.csv"
+        equity_log_df.to_csv(equity_log_path, index=False)
 
         # Export performance summary
         performance_summary = {
@@ -791,15 +951,17 @@ class LSTMTradingStrategy:
         with open(performance_path, "w") as f:
             json.dump(performance_summary, f, indent=2, default=str)
 
-        logger.info("Consolidated trading results exported:")
-        logger.info(f"  Comprehensive trade log: {trade_log_path}")
+        logger.info("Trading results exported:")
+        logger.info(f"  Trade log (legacy): {trade_log_path}")
+        logger.info(f"  ✅ NEW Equity log (correct P&L): {equity_log_path}")
         logger.info(f"  Performance summary: {performance_path}")
         logger.info(
-            "  ✅ All position, P&L, and trade data consolidated into single CSV"
+            "  📊 Equity log contains correct daily P&L tracking with next-day DSP"
         )
 
         export_files = {
             "trade_log": str(trade_log_path),
+            "equity_log": str(equity_log_path),  # NEW equity log
             "performance_summary": str(performance_path),
         }
 

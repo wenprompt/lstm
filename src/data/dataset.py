@@ -19,6 +19,9 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Tuple, Dict, Any
 import logging
 
+# Import seed_worker for reproducible DataLoader workers
+from ..utils.seed import seed_worker
+
 logger = logging.getLogger(__name__)
 
 
@@ -156,6 +159,7 @@ def create_dataloaders(
         shuffle=True,  # Randomize training batches
         num_workers=num_workers,  # Configurable worker processes
         drop_last=False,  # Keep all samples
+        worker_init_fn=seed_worker,  # Ensure reproducible workers
     )
 
     # Validation: shuffle=False to maintain consistent evaluation
@@ -165,6 +169,7 @@ def create_dataloaders(
         shuffle=False,  # Keep order for consistent validation
         num_workers=num_workers,
         drop_last=False,
+        worker_init_fn=seed_worker,  # Ensure reproducible workers
     )
 
     # Test: shuffle=False to maintain temporal order for analysis
@@ -174,6 +179,7 @@ def create_dataloaders(
         shuffle=False,  # Keep chronological order for testing
         num_workers=num_workers,
         drop_last=False,
+        worker_init_fn=seed_worker,  # Ensure reproducible workers
     )
 
     logger.info(

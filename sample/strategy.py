@@ -1,40 +1,15 @@
 import os
-import re
-import math
-import glob
-import warnings
-import logging
 import pickle
-import itertools
-from signal import signal
-from typing import List, Union, Literal
-from datetime import date, timedelta
-from collections import namedtuple, defaultdict
-from bisect import bisect_right, bisect_left
-from decimal import Decimal
-from pathlib import Path
-from multiprocessing import Pool
+from typing import List, Literal
 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import seaborn as sns
 
-import utils
-from consts import EXCEL_FILENAME_PH, TS_START, TS_TEST_START, TS_END
-from consts import LOG_SEP_12, ROUND_2, ROUND_6, ROUND_9, C_ENTRY_SIZE_MULTIPLIER_100
-from consts import ProductDTO, P_TC5, P_C3, P_C5, P_PMX, P_SMX
+from consts import EXCEL_FILENAME_PH, TS_TEST_START, TS_END
+from consts import ROUND_6, C_ENTRY_SIZE_MULTIPLIER_100
 from consts import (
     C_DATE,
-    C_INDEX,
     C_LONG,
     C_SHORT,
-    C_M0,
-    C_M1,
-    C_M2,
-    C_M3,
-    C_M4,
     C_TOTAL,
 )
 from consts import EXIT_REVERSE, EXIT_EOM, EXIT_PRICING, EXIT_NON_PRICING
@@ -49,7 +24,7 @@ def get_65_by_contract() -> dict[pd.Period, pd.Series]:
         return CACHE_CONTRACT_DICT
 
     price_dict = {}
-    with open(f"Raw_M65F_DSP.pkl", "rb") as f:
+    with open("Raw_M65F_DSP.pkl", "rb") as f:
         price_dict = pickle.load(f)
     for contract, ser in price_dict.items():
         ser = ser.ffill()

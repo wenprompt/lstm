@@ -88,10 +88,17 @@ class ModelResultsExporter:
         consolidated_df = pd.read_pickle(consolidated_path)
 
         # Use raw price from continuous futures, Y target from consolidated features
-        price_df = pd.DataFrame(
-            {"raw_price_65_m1": df["raw_price_65_m1"], "Y": consolidated_df["Y"]}
+        # Align on the date index to avoid silent misalignment/NaNs
+        price_df = (
+            df[["raw_price_65_m1"]]
+            .join(consolidated_df[["Y"]], how="inner")
+            .sort_index()
         )
         price_df.index.name = "date"
+        if price_df.isna().any().any():
+            logger.warning(
+                "NaNs found after alignment; investigate source data indices"
+            )
 
         logger.info(f"Loaded {len(price_df)} raw price observations")
         return price_df
@@ -118,7 +125,7 @@ class ModelResultsExporter:
         logger.info(f"Test set spans indices {test_start} to {test_end}")
         return test_start, test_end
 
-    def create_test_results_dataframe(
+    def create_model_results_dataframe(
         self, model: torch.nn.Module, test_loader: DataLoader, device: torch.device
     ) -> pd.DataFrame:
         """
@@ -144,20 +151,20 @@ class ModelResultsExporter:
         total_samples = len(price_df)
         test_start, test_end = self.get_test_date_range(total_samples)
 
-        # Extract test period data
-        test_price_data = price_df.iloc[test_start:test_end].copy()
-
-        # Account for sequence creation reducing sample count
+        # Extract test period data with sequence offset
         # Sequence creation removes (sequence_length - 1) samples from the beginning
+        seq_len = int(self.config.get("model", {}).get("sequence_length", 0))
+        offset = max(seq_len - 1, 0)
+        test_price_data = price_df.iloc[test_start + offset : test_end].copy()
 
-        # Align test data with predictions (which are offset by sequence creation)
-        if len(test_price_data) > len(predictions):
-            # Take the last N samples to match predictions length
-            test_price_data = test_price_data.iloc[-len(predictions) :].copy()
-        elif len(test_price_data) < len(predictions):
-            # Truncate predictions to match available data
-            predictions = predictions[: len(test_price_data)]
-            actuals = actuals[: len(test_price_data)]
+        # Final length reconciliation (defensive)
+        if len(test_price_data) != len(predictions):
+            min_len = min(len(test_price_data), len(predictions))
+            if len(test_price_data) != min_len:
+                test_price_data = test_price_data.iloc[-min_len:].copy()
+            if len(predictions) != min_len:
+                predictions = predictions[-min_len:]
+                actuals = actuals[-min_len:]
 
         # Create results DataFrame
         results_df = pd.DataFrame(
@@ -212,7 +219,7 @@ class ModelResultsExporter:
         logger.info("Exporting detailed model results...")
 
         # Create model results DataFrame
-        results_df = self.create_test_results_dataframe(model, test_loader, device)
+        results_df = self.create_model_results_dataframe(model, test_loader, device)
 
         # Create model_results subdirectory
         model_results_dir = save_dir / "model_results"
